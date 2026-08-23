@@ -5,6 +5,7 @@
 
 import type { UserPolicy, PolicyDecision, PolicyEvaluation, PaymentMethod } from '../types.js';
 import { db } from '../db/database.js';
+import { createTransactionAuthorization, TransactionAuthorization } from '../crypto/authorization.js';
 
 /**
  * Evaluate whether a proposed purchase is authorized by the user's policy.
@@ -14,7 +15,12 @@ export function evaluateUserPolicy(
   userId: string,
   amount: number,
   category: string,
-  paymentMethod: PaymentMethod
+  paymentMethod: PaymentMethod,
+  context?: {
+    agentId?: string;
+    merchantId?: string;
+    purpose?: string;
+  }
 ): PolicyEvaluation {
   const policy = db.getUserPolicy(userId);
 
@@ -47,10 +53,39 @@ export function evaluateUserPolicy(
 
   let decision: PolicyDecision;
   let reason: string;
+  let authorization: any = undefined;
 
   if (allPassed && policy.autonomous_purchase) {
     decision = 'GREEN';
     reason = `Purchase authorized: ₹${amount} is within single limit (₹${policy.single_transaction_limit}), daily budget (₹${policy.daily_limit - dailySpent} remaining), weekly budget (₹${policy.weekly_limit - weeklySpent} remaining). Category "${category}" allowed. Payment method "${paymentMethod}" authorized.`;
+
+    // Issue cryptographic Ed25519 TransactionAuthorization
+    const agentId = context?.agentId || 'buyer-agent';
+    const merchantId = context?.merchantId || 'merchant_authorized';
+    const purpose = context?.purpose || `Purchase: ${category} item`;
+
+    authorization = createTransactionAuthorization({
+      user_id: userId,
+      agent_id: agentId,
+      purpose,
+      merchant_id: merchantId,
+      category,
+      amount,
+      currency: 'INR',
+      allowed_payment_methods: policy.fallback_payments,
+      policy,
+      request: {
+        user_id: userId,
+        agent_id: agentId,
+        merchant_id: merchantId,
+        category,
+        amount,
+        currency: 'INR',
+        payment_method: paymentMethod,
+        purpose,
+      },
+      validitySeconds: 300,
+    });
   } else if (!amountCheck) {
     decision = 'RED';
     reason = `BLOCKED: ₹${amount} exceeds single transaction limit of ₹${policy.single_transaction_limit}.`;
@@ -84,6 +119,7 @@ export function evaluateUserPolicy(
   return {
     decision,
     reason,
+    authorization,
     details: {
       amount_check: amountCheck,
       daily_budget_check: dailyCheck,

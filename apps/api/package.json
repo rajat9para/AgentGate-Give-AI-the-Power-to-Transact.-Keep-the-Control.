@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "test": "tsx src/test-policy.ts && tsx src/test-flow.ts",
+    "test": "tsx src/test-policy.ts && tsx src/test-flow.ts && tsx src/crypto/security.test.ts",
     "test:policy": "tsx src/test-policy.ts",
+    "test:security": "tsx src/crypto/security.test.ts",
     "start": "node dist/index.js"
   },
   "dependencies": {

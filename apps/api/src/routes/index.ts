@@ -9,8 +9,8 @@ import { db } from '../db/database.js';
 import { evaluateUserPolicy } from '../policy/user-policy-engine.js';
 import { canAutoRefund } from '../policy/merchant-policy-engine.js';
 import { handleWebhook } from '../payments/webhook-handler.js';
-import { getAuditTrail, getOrderAuditTrail, getAllAuditLogs } from '../audit/audit-service.js';
-import { createAuditLog } from '../audit/audit-service.js';
+import { getAuditTrail, getOrderAuditTrail, getAllAuditLogs, verifyAuditChain, createAuditLog } from '../audit/audit-service.js';
+import { keyManager } from '../crypto/key-manager.js';
 
 export const router = Router();
 
@@ -281,6 +281,29 @@ router.get('/audit/:sessionId', (req: Request, res: Response) => {
  */
 router.get('/audit', (_req: Request, res: Response) => {
   res.json(getAllAuditLogs());
+});
+
+/**
+ * GET /api/audit-chain/verify
+ * Cryptographically verifies the tamper-evident hash chain across all audit records
+ */
+router.get('/audit-chain/verify', (_req: Request, res: Response) => {
+  const verification = verifyAuditChain();
+  res.json(verification);
+});
+
+/**
+ * GET /api/crypto/active-key
+ * Returns active Ed25519 public key and key_id for independent verification
+ */
+router.get('/crypto/active-key', (_req: Request, res: Response) => {
+  const activeKeyId = keyManager.getActiveKeyId();
+  const publicKeyPem = keyManager.getPublicKeyPem(activeKeyId);
+  res.json({
+    key_id: activeKeyId,
+    algorithm: 'Ed25519',
+    public_key: publicKeyPem,
+  });
 });
 
 /**

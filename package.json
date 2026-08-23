@@ -15,7 +15,8 @@
     "build:api": "npm run build --workspace=apps/api",
     "build:web": "npm run build --workspace=apps/web",
     "test": "npm run test --workspace=apps/api",
-    "test:policy": "npm run test:policy --workspace=apps/api"
+    "test:policy": "npm run test:policy --workspace=apps/api",
+    "test:security": "npm run test:security --workspace=apps/api"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

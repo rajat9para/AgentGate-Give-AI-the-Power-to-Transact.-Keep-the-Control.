@@ -20,6 +20,7 @@ import { createRazorpayOrder, simulatePayment } from '../payments/razorpay-servi
 import { simulateWebhookEvent } from '../payments/webhook-handler.js';
 import { recoverPayment } from '../payments/payment-recovery.js';
 import { createAuditLog, getAuditTrail } from '../audit/audit-service.js';
+import { executionGateway } from '../gateway/execution-gateway.js';
 
 /**
  * Execute the full buyer agent flow.
@@ -182,9 +183,13 @@ export async function executeBuyerFlow(
   }
 
   // ---- Step 6: Policy Check ----
-  addMessage('agent', '🔐 Checking purchase authorization against your policy...', 'policy');
+  addMessage('agent', '🔐 Evaluating deterministic policy and issuing cryptographic authorization...', 'policy');
 
-  const policyEval = evaluateUserPolicy(userId, finalPrice, intent.category, 'upi');
+  const policyEval = evaluateUserPolicy(userId, finalPrice, intent.category, 'upi', {
+    agentId: 'buyer-agent',
+    merchantId: selected.merchant.id,
+    purpose: `Purchase: ${selected.product.title}`,
+  });
 
   createAuditLog({
     agentId: 'buyer-agent', userId, merchantId: selected.merchant.id, sessionId: session.id,
@@ -192,6 +197,7 @@ export async function executeBuyerFlow(
     reason: policyEval.reason,
     policyResult: policyEval.decision, paymentId: null, orderId: null,
     result: policyEval.decision === 'GREEN' ? 'success' : (policyEval.decision === 'RED' ? 'blocked' : 'pending'),
+    authorizationId: policyEval.authorization?.authorization_id,
   });
 
   if (policyEval.decision === 'RED') {
@@ -205,71 +211,53 @@ export async function executeBuyerFlow(
     };
   }
 
-  addMessage('agent', `✅ **Policy approved!** ${policyEval.reason}`, 'policy', { policy_evaluation: policyEval });
+  addMessage('agent', `✅ **Policy approved!** Ed25519 authorization issued (Auth ID: \`${policyEval.authorization?.authorization_id.slice(0, 16)}...\`).`, 'policy', {
+    policy_evaluation: policyEval,
+    authorization: policyEval.authorization,
+  });
 
-  // ---- Step 7: Create Order & Process Payment ----
-  addMessage('agent', '💳 Creating order and processing payment...', 'payment');
+  // ---- Step 7: Centralized Execution Gateway (Verifies signature, locks nonce, reserves budget) ----
+  addMessage('agent', '🛡️ Submitting to Execution Gateway for cryptographic verification & Razorpay processing...', 'payment');
 
-  const order = createOrder({
-    userId,
-    merchantId: selected.merchant.id,
-    productId: selected.product.id,
+  const gatewayResult = await executionGateway.executePayment({
+    authorization: policyEval.authorization,
+    request: {
+      user_id: userId,
+      agent_id: 'buyer-agent',
+      merchant_id: selected.merchant.id,
+      category: intent.category,
+      amount: finalPrice,
+      currency: 'INR',
+      payment_method: 'upi',
+      purpose: `Purchase: ${selected.product.title}`,
+    },
+    session_id: session.id,
     variantId: variantMatch.variantId,
     quantity: 1,
-    unitPrice: selected.product.price,
-    negotiatedPrice: negotiation?.final_price || null,
-    agentSessionId: session.id,
+    simulateFailure: true, // For demo, initial UPI times out to trigger auto-recovery
   });
 
-  // Create Razorpay order
-  const rzpOrder = await createRazorpayOrder(finalPrice, 'INR', order.id);
-  db.updateOrder(order.id, { razorpay_order_id: rzpOrder.id, status: 'payment_processing' });
+  let order = gatewayResult.order!;
+  let payment = gatewayResult.payment!;
 
-  createAuditLog({
-    agentId: 'buyer-agent', userId, merchantId: selected.merchant.id, sessionId: session.id,
-    action: 'razorpay_order_created', requestedAmount: finalPrice, approvedAmount: finalPrice,
-    reason: `Razorpay order ${rzpOrder.id} created for ₹${finalPrice}`,
-    policyResult: 'GREEN', paymentId: null, orderId: order.id, result: 'success',
-  });
+  if (!gatewayResult.success && payment?.status === 'failed') {
+    addMessage('agent', `⚠️ Primary UPI payment failed: ${gatewayResult.rejectionReason}\n🔄 Initiating automatic fallback recovery via Execution Gateway...`, 'payment', { failure: payment });
 
-  // ---- Step 8: Attempt Payment (UPI first → will fail in demo) ----
-  const upiResult = simulatePayment('upi', finalPrice, true); // Force UPI to fail for demo
+    // Simulate webhook for initial failure
+    simulateWebhookEvent('payment.failed', order.razorpay_order_id || '', payment.razorpay_payment_id || '', finalPrice);
 
-  let payment = db.createPayment({
-    order_id: order.id,
-    razorpay_payment_id: upiResult.paymentId,
-    razorpay_order_id: rzpOrder.id,
-    amount: finalPrice,
-    currency: 'INR',
-    method: 'upi',
-    status: upiResult.success ? 'captured' : 'failed',
-    failure_reason: upiResult.failureReason,
-    is_recovery_attempt: false,
-    recovery_attempt_number: 0,
-  });
-
-  if (!upiResult.success) {
-    addMessage('agent', `⚠️ UPI payment failed: ${upiResult.failureReason}\n🔄 Initiating automatic recovery...`, 'payment', { failure: upiResult });
-
-    // Simulate webhook for failure
-    simulateWebhookEvent('payment.failed', rzpOrder.id, upiResult.paymentId, finalPrice);
-
-    // ---- Step 9: Payment Recovery ----
-    const recovery = await recoverPayment(userId, order.id, finalPrice, 'upi', session.id);
+    // ---- Step 8: Payment Recovery via Gateway ----
+    const recovery = await recoverPayment(userId, order.id, finalPrice, 'upi', session.id, policyEval.authorization);
 
     if (recovery.success && recovery.payment) {
       payment = recovery.payment;
-      db.updateOrder(order.id, { status: 'paid', payment_id: payment.id });
+      simulateWebhookEvent('payment.captured', order.razorpay_order_id || '', payment.razorpay_payment_id || '', finalPrice);
 
-      // Simulate successful webhook
-      simulateWebhookEvent('payment.captured', rzpOrder.id, payment.razorpay_payment_id || '', finalPrice);
-
-      addMessage('agent', `✅ **Payment recovered!** Successfully paid ₹${finalPrice} via **${recovery.finalMethod}**.\n${recovery.message}`, 'payment', {
+      addMessage('agent', `✅ **Payment recovered!** Successfully captured ₹${finalPrice} via **${recovery.finalMethod}**.\n${recovery.message}`, 'payment', {
         recovery_attempts: recovery.attempts,
         final_method: recovery.finalMethod,
       });
     } else {
-      db.updateOrder(order.id, { status: 'payment_failed' });
       addMessage('agent', `❌ Payment recovery failed. ${recovery.message}`, 'payment');
 
       return {
@@ -278,14 +266,18 @@ export async function executeBuyerFlow(
         opportunity: null, audit_trail: getAuditTrail(session.id), agent_messages: messages,
       };
     }
+  } else if (gatewayResult.success) {
+    simulateWebhookEvent('payment.captured', order.razorpay_order_id || '', payment.razorpay_payment_id || '', finalPrice);
+    addMessage('agent', `✅ **Payment successful!** Paid ₹${finalPrice} via ${payment.method}.`, 'payment');
   } else {
-    db.updateOrder(order.id, { status: 'paid', payment_id: payment.id });
-    simulateWebhookEvent('payment.captured', rzpOrder.id, upiResult.paymentId, finalPrice);
-    addMessage('agent', `✅ **Payment successful!** Paid ₹${finalPrice} via UPI.`, 'payment');
+    // Gateway rejected before payment
+    addMessage('agent', `🚫 **Gateway Execution Rejected:** ${gatewayResult.rejectionReason}`, 'payment');
+    return {
+      session_id: session.id, intent, candidates: topCandidates, selected, negotiation,
+      policy_evaluation: policyEval, order: null, payment: null,
+      opportunity: null, audit_trail: getAuditTrail(session.id), agent_messages: messages,
+    };
   }
-
-  // Record spending
-  recordSpending(userId, finalPrice);
 
   // ---- Step 10: Order Confirmation ----
   addMessage('agent', `🎉 **Order confirmed!**\n\n📦 **${selected.product.title}**\n🏪 From: ${selected.merchant.name}\n💰 Paid: ₹${finalPrice}\n📋 Order ID: ${order.id}\n\nYour order will be delivered in ~${selected.product.delivery_days} days.`, 'text');

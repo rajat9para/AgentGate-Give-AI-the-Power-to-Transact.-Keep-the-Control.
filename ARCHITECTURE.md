@@ -110,21 +110,22 @@ Gemini is used for:
 
 The AI layer returns structured outputs and never receives raw payment secrets.
 
-### Layer 4 — Deterministic Trust
+### Layer 4 — Deterministic Trust & Cryptographic Execution Gateway
 
-This layer is deliberately non-LLM:
+This layer is deliberately non-LLM and strictly deterministic:
 
-- spending limits
-- category rules
-- approval requirements
-- negotiation ceilings
-- refund limits
-- payment fallback permissions
-- daily/weekly budget
-- idempotency
-- signature verification
+- Single transaction spending limits
+- Category whitelist validation
+- Autonomous purchase flag enforcement
+- Negotiation discount ceilings ($D_{\text{max}}$)
+- Refund velocity & auto-approval limits
+- Payment fallback permission matrix
+- Daily and weekly budget velocity meters
+- **Ed25519 Cryptographic Authorization Signing**: Generates versioned, canonical RFC 8785 signed authorizations with policy and request hashes.
+- **Centralized Execution Gateway**: Single enforcement gate executing (1) Ed25519 verification, (2) Nonce anti-replay consumption, (3) Atomic budget reservation, (4) Razorpay order execution.
+- **Tamper-Evident SHA-256 Audit Chain**: Event-by-event hash chaining with `GENESIS` verification.
 
-This is the security boundary.
+This is the absolute financial security boundary. See `SECURITY_ARCHITECTURE.md` for the threat model and cryptographic guarantees.
 
 ### Layer 5 — Data
 

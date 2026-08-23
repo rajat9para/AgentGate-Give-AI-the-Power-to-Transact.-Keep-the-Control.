@@ -272,8 +272,13 @@ export const db = {
     [...negotiations.values()].filter(n => n.session_id === sessionId),
 
   // Audit Logs
-  createAuditLog: (log: Omit<AuditLog, 'id'>) => {
-    const newLog: AuditLog = { ...log, id: uuidv4() };
+  createAuditLog: (log: AuditLog | Omit<AuditLog, 'id'>) => {
+    const newLog: AuditLog = {
+      ...log,
+      id: (log as any).id || uuidv4(),
+      previous_event_hash: (log as any).previous_event_hash || 'GENESIS',
+      event_hash: (log as any).event_hash || '',
+    };
     auditLogs.set(newLog.id, newLog);
     return newLog;
   },
@@ -286,7 +291,7 @@ export const db = {
       .filter(l => l.order_id === orderId)
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
   getAllAuditLogs: () =>
-    [...auditLogs.values()].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    [...auditLogs.values()].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
 
   // Spending Tracking
   getDailySpending: (userId: string): number => {

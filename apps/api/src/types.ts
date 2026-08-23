@@ -216,6 +216,7 @@ export type PolicyDecision = 'GREEN' | 'AMBER' | 'RED';
 export interface PolicyEvaluation {
   decision: PolicyDecision;
   reason: string;
+  authorization?: any; // TransactionAuthorization when GREEN
   details: {
     amount_check: boolean;
     daily_budget_check: boolean;
@@ -244,6 +245,17 @@ export interface AuditLog {
   order_id: string | null;
   timestamp: string;
   result: 'success' | 'failed' | 'blocked' | 'pending';
+  // Tamper-Evident Cryptographic Hash Chain
+  previous_event_hash: string;
+  event_hash: string;
+  authorization_id?: string | null;
+  policy_version?: number | null;
+  policy_hash?: string | null;
+  request_hash?: string | null;
+  nonce?: string | null;
+  key_id?: string | null;
+  verification_result?: string | null;
+  reservation_result?: string | null;
 }
 
 // ---- Candidate / Recommendation ----

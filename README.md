@@ -119,44 +119,50 @@ AgentGate is designed around **Zero-Trust Financial Isolation**. The autonomous 
 │   ┌─────────────────────────────────────────────────────────────────────┐   │
 │   │  • Single Limit Check (≤ ₹6,000)      • Category Whitelist Check    │   │
 │   │  • Daily Velocity (Spent + Amount)    • Payment Method Authorization│   │
-│   │  • Weekly Velocity Check              • Merchant Refund Boundary    │   │
+│   │  • Weekly Velocity Check              • Ed25519 Signed Authorization│   │
 │   └──────────────────────────────────┬──────────────────────────────────┘   │
 │                                      │                                      │
 │                ┌─────────────────────┴─────────────────────┐                │
 │                │                                           │                │
-│         [GREEN: Passed]                            [RED: Blocked]           │
+│   [GREEN: Ed25519 Signed Auth]                     [RED: Blocked]           │
 │                │                                           │                │
 │                ▼                                           ▼                │
-│   ┌───────────────────────────┐               ┌─────────────────────────┐   │
-│   │   Razorpay Execution      │               │  Safe Halt & Audit Log  │   │
-│   │   (Orders / Test Mode)    │               │  (Zero Money Moved)     │   │
-│   └────────────┬──────────────┘               └─────────────────────────┘   │
-│                │                                                            │
-│        ┌───────┴────────┐                                                   │
-│        ▼                ▼                                                   │
-│    [SUCCESS]        [FAILURE]                                               │
-│        │                │                                                   │
-│        │                ▼                                                   │
-│        │   ┌─────────────────────────────┐                                  │
-│        │   │   Payment Recovery Agent    │                                  │
-│        │   │ (Fallback Chain / Auto-Card)│                                  │
-│        │   └────────────┬────────────────┘                                  │
-│        │                │ (Recovered)                                       │
-│        └────────► ◄─────┘                                                   │
-│                   │                                                         │
-│                   ▼                                                         │
-│   ┌───────────────────────────┐                                             │
-│   │  Webhook Reconciliation   │                                             │
-│   └───────────────┬───────────┘                                             │
-└───────────────────┼─────────────────────────────────────────────────────────┘
-                    │
-                    ▼
+│ ┌─────────────────────────────────────────┐   ┌─────────────────────────┐   │
+│ │       Centralized Execution Gateway     │   │  Safe Halt & Audit Log  │   │
+│ │ • Verify Ed25519 & Nonce Anti-Replay    │   │  (Zero Money Moved)     │   │
+│ │ • Atomic Budget Lock (Race Safe)        │   └─────────────────────────┘   │
+│ └──────────────────────┬──────────────────┘                                 │
+│                        │ Verified & Reserved                                │
+│                        ▼                                                    │
+│   ┌───────────────────────────────────────┐                                 │
+│   │   Razorpay Execution (Test Mode)      │                                 │
+│   └────────────────────┬──────────────────┘                                 │
+│                        │                                                    │
+│        ┌───────────────┴───────────────┐                                    │
+│        ▼                               ▼                                    │
+│    [SUCCESS]                       [FAILURE]                                │
+│        │                               │                                    │
+│        │                               ▼                                    │
+│        │                 ┌─────────────────────────────┐                    │
+│        │                 │   Payment Recovery Agent    │                    │
+│        │                 │ (Authorized Fallback via GW)│                    │
+│        │                 └─────────────┬───────────────┘                    │
+│        │                               │ (Recovered via Card)               │
+│        └───────────────► ◄─────────────┘                                    │
+│                          │                                                  │
+│                          ▼                                                  │
+│   ┌───────────────────────────────────────┐                                 │
+│   │  Webhook Reconciliation & Audit Chain │                                 │
+│   └──────────────────────┬────────────────┘                                 │
+└──────────────────────────┼──────────────────────────────────────────────────┘
+                           │
+                           ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        TRANSPARENCY & AUDIT LEDGER                          │
+│                 TAMPER-EVIDENT CRYPTOGRAPHIC AUDIT LEDGER                   │
 │                                                                             │
 │   ┌───────────────────────────┐               ┌─────────────────────────┐   │
-│   │ Explainable Decision Card │               │ Immutable Audit Logs    │   │
-│   │ (What, Why, Price, Route) │               │ (Full State Hierarchy)  │   │
+│   │ Explainable Decision Card │               │ SHA-256 Hash Chain      │   │
+│   │ + Ed25519 Crypto Badge    │               │ (Tamper-Evident Ledger) │   │
 │   └───────────────────────────┘               └─────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```

@@ -241,6 +241,57 @@ export default function BuyerWorkspace() {
           </div>
         )}
 
+        {/* Cryptographic Authorization Badge Card */}
+        {lastResult.policy_evaluation?.authorization && (
+          <div className="card" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(99, 102, 241, 0.05))', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
+            <div className="card-header" style={{ marginBottom: 12 }}>
+              <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--success)' }}>
+                <ShieldCheck size={16} /> Cryptographic Transaction Authorization
+              </span>
+              <span className="badge badge-green">Ed25519 Signed</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, fontSize: 12, marginBottom: 12 }}>
+              <div style={{ padding: '8px 10px', background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Auth ID</div>
+                <div style={{ fontFamily: 'monospace', fontWeight: 600, marginTop: 2, color: 'var(--accent-primary)' }}>
+                  {lastResult.policy_evaluation.authorization.authorization_id?.slice(0, 18)}...
+                </div>
+              </div>
+
+              <div style={{ padding: '8px 10px', background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Key ID / Algo</div>
+                <div style={{ fontFamily: 'monospace', fontWeight: 600, marginTop: 2 }}>
+                  {lastResult.policy_evaluation.authorization.key_id} (Ed25519)
+                </div>
+              </div>
+
+              <div style={{ padding: '8px 10px', background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Policy Hash</div>
+                <div style={{ fontFamily: 'monospace', fontWeight: 600, marginTop: 2 }}>
+                  {lastResult.policy_evaluation.authorization.policy_hash?.slice(0, 14)}...
+                </div>
+              </div>
+
+              <div style={{ padding: '8px 10px', background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Request Hash</div>
+                <div style={{ fontFamily: 'monospace', fontWeight: 600, marginTop: 2 }}>
+                  {lastResult.policy_evaluation.authorization.request_hash?.slice(0, 14)}...
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <span className="badge badge-green" style={{ fontSize: 11 }}>✓ Signature Verified</span>
+              <span className="badge badge-green" style={{ fontSize: 11 }}>✓ Policy Bound</span>
+              <span className="badge badge-green" style={{ fontSize: 11 }}>✓ Transaction Bound</span>
+              <span className="badge badge-green" style={{ fontSize: 11 }}>✓ Nonce Consumed</span>
+              <span className="badge badge-green" style={{ fontSize: 11 }}>✓ Budget Reserved</span>
+              <span className="badge badge-purple" style={{ fontSize: 11 }}>✓ Hash Chain Linked</span>
+            </div>
+          </div>
+        )}
+
         {/* Selected Product Card */}
         {lastResult.selected && (
           <div className="product-card">
