@@ -1,0 +1,60 @@
+# ============================================================
+# AgentGate — Render Blueprint Infrastructure Specification
+# Target: Backend API & Cryptographic Execution Gateway
+# ============================================================
+
+services:
+  - type: web
+    name: agentgate-api
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install && npm run build:api
+    startCommand: npm run start --workspace=apps/api
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DEMO_MODE
+        value: "false"
+      - key: REQUEST_TIMEOUT_MS
+        value: "30000"
+      
+      # Frontend Web Origin (for CORS)
+      - key: FRONTEND_URL
+        sync: false
+
+      # Supabase PostgreSQL (Privileged Server-Side Connection)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+      # AI Model Provider (Gemini 2.0 Flash)
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash
+
+      # Razorpay Payment Gateway (Test or Production Mode)
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+
+      # Cloudinary Object & Document Storage
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      # AgentGate Cryptographic Signing Authority (Ed25519)
+      - key: AGENTGATE_KEY_ID
+        value: agentgate-prod-2026-08-v1
+      - key: AGENTGATE_SIGNING_KEY
+        sync: false

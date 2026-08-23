@@ -11,6 +11,11 @@ import { canAutoRefund } from '../policy/merchant-policy-engine.js';
 import { handleWebhook } from '../payments/webhook-handler.js';
 import { getAuditTrail, getOrderAuditTrail, getAllAuditLogs, verifyAuditChain, createAuditLog } from '../audit/audit-service.js';
 import { keyManager } from '../crypto/key-manager.js';
+import { verifyTransactionAuthorization } from '../crypto/authorization.js';
+import { aiIntentRateLimiter, webhookRateLimiter } from '../middleware/rate-limit.js';
+import { cloudinaryStorageService } from '../storage/cloudinary-service.js';
+import { supabaseDb } from '../db/supabase-client.js';
+import { config } from '../config.js';
 
 export const router = Router();
 
@@ -22,7 +27,7 @@ export const router = Router();
  * POST /api/buyer/intent
  * Main entry point — user gives a natural language purchase request
  */
-router.post('/buyer/intent', async (req: Request, res: Response) => {
+router.post('/buyer/intent', aiIntentRateLimiter, async (req: Request, res: Response) => {
   try {
     const { user_id, message } = req.body;
 
@@ -261,7 +266,80 @@ router.get('/orders/:id', (req: Request, res: Response) => {
 /**
  * POST /api/webhooks/razorpay
  */
-router.post('/webhooks/razorpay', handleWebhook);
+router.post('/webhooks/razorpay', webhookRateLimiter, handleWebhook);
+
+// ============================================================
+// Cryptographic Transaction Authorization Routes
+// ============================================================
+
+/**
+ * POST /api/transactions/verify-authorization
+ * Validates a TransactionAuthorization object against expected parameters
+ */
+router.post('/transactions/verify-authorization', (req: Request, res: Response) => {
+  const { authorization, expected_request } = req.body;
+  if (!authorization) {
+    res.status(400).json({ error: 'authorization object is required' });
+    return;
+  }
+
+  const result = verifyTransactionAuthorization(authorization, {
+    expectedRequest: expected_request,
+  });
+
+  res.json(result);
+});
+
+// ============================================================
+// Cloudinary Media / Object Storage Routes
+// ============================================================
+
+/**
+ * POST /api/storage/upload
+ */
+router.post('/storage/upload', async (req: Request, res: Response) => {
+  try {
+    const { fileData, folder, resourceType, referenceType, referenceId, ownerId } = req.body;
+    if (!fileData) {
+      res.status(400).json({ error: 'fileData is required' });
+      return;
+    }
+
+    const stored = await cloudinaryStorageService.uploadMedia({
+      fileData,
+      folder,
+      resourceType,
+      referenceType,
+      referenceId,
+      ownerId,
+    });
+
+    res.json(stored);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Storage upload failed' });
+  }
+});
+
+/**
+ * POST /api/storage/signed-params
+ */
+router.post('/storage/signed-params', (req: Request, res: Response) => {
+  const { folder } = req.body;
+  const params = cloudinaryStorageService.generateSignedUploadParams(folder);
+  res.json(params);
+});
+
+/**
+ * GET /api/storage/:id
+ */
+router.get('/storage/:id', (req: Request, res: Response) => {
+  const media = cloudinaryStorageService.getMediaById(String(req.params.id));
+  if (!media) {
+    res.status(404).json({ error: 'Media object not found' });
+    return;
+  }
+  res.json(media);
+});
 
 // ============================================================
 // Audit Routes
@@ -340,13 +418,53 @@ router.get('/users', (_req: Request, res: Response) => {
 });
 
 // ============================================================
-// Health Check
+// Health & Readiness Endpoints (Render / Deployment Probes)
 // ============================================================
 
+/**
+ * GET /api/health (Basic liveness probe)
+ */
 router.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
-    demo_mode: process.env.DEMO_MODE === 'true',
+    environment: config.nodeEnv,
+    demo_mode: config.demoMode,
     timestamp: new Date().toISOString(),
+    uptime_seconds: Math.floor(process.uptime()),
+  });
+});
+
+/**
+ * GET /api/ready (Readiness probe verifying subsystem status)
+ */
+router.get('/ready', async (_req: Request, res: Response) => {
+  const supabaseHealth = await supabaseDb.checkHealth();
+  const activeKeyId = keyManager.getActiveKeyId();
+
+  const isReady = activeKeyId !== '';
+
+  res.status(isReady ? 200 : 503).json({
+    status: isReady ? 'ready' : 'not_ready',
+    timestamp: new Date().toISOString(),
+    subsystems: {
+      crypto_key_manager: {
+        status: activeKeyId ? 'operational' : 'degraded',
+        active_key_id: activeKeyId,
+        algorithm: 'Ed25519',
+      },
+      supabase: supabaseHealth,
+      cloudinary: {
+        configured: config.cloudinary.isConfigured,
+        mode: config.cloudinary.isConfigured ? 'cloud' : 'in-memory-mock',
+      },
+      razorpay: {
+        configured: config.razorpay.isConfigured,
+        mode: config.demoMode ? 'simulated-test-mode' : 'live-api',
+      },
+      gemini_ai: {
+        configured: config.gemini.isConfigured,
+        model: config.gemini.model,
+      },
+    },
   });
 });

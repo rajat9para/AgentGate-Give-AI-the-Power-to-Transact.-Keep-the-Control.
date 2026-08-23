@@ -1,24 +1,33 @@
 // ============================================================
-// AgentGate — Frontend API Client
+// AgentGate — Frontend API Client (Production-Ready)
 // ============================================================
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
 
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || `HTTP ${res.status}`);
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: `HTTP ${res.status}: Request failed` }));
+      throw new Error(error.message || error.error || `HTTP ${res.status}`);
+    }
+
+    return res.json();
+  } catch (err: any) {
+    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      throw new Error(
+        `Unable to reach AgentGate Backend API at ${API_BASE}. Ensure the Render backend service is running.`
+      );
+    }
+    throw err;
   }
-
-  return res.json();
 }
 
 // ---- Buyer ----
@@ -82,13 +91,40 @@ export const orderApi = {
   getById: (id: string) => request<any>(`/orders/${id}`),
 };
 
-// ---- Audit ----
+// ---- Audit & Cryptographic Chain ----
 export const auditApi = {
   getBySession: (sessionId: string) => request<any[]>(`/audit/${sessionId}`),
   getAll: () => request<any[]>('/audit'),
+  verifyChain: () => request<any>('/audit-chain/verify'),
 };
 
-// ---- Health ----
+// ---- Crypto Key Management ----
+export const cryptoApi = {
+  getActiveKey: () => request<any>('/crypto/active-key'),
+  verifyAuthorization: (authorization: any, expectedRequest?: any) =>
+    request<any>('/transactions/verify-authorization', {
+      method: 'POST',
+      body: JSON.stringify({ authorization, expected_request: expectedRequest }),
+    }),
+};
+
+// ---- Object Storage (Cloudinary) ----
+export const storageApi = {
+  upload: (data: { fileData: string; folder?: string; referenceType?: string; referenceId?: string }) =>
+    request<any>('/storage/upload', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getSignedParams: (folder?: string) =>
+    request<any>('/storage/signed-params', {
+      method: 'POST',
+      body: JSON.stringify({ folder }),
+    }),
+  getById: (id: string) => request<any>(`/storage/${id}`),
+};
+
+// ---- Health & Readiness ----
 export const healthApi = {
   check: () => request<any>('/health'),
+  ready: () => request<any>('/ready'),
 };

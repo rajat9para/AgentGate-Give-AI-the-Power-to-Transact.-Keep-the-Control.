@@ -14,7 +14,11 @@ export interface BudgetReservation {
   status: 'reserved' | 'committed' | 'released';
   createdAt: number;
   expiresAt: number;
+  committedAt?: number;
+  releasedAt?: number;
 }
+
+export type SpendingReservation = BudgetReservation;
 
 class BudgetReservationEngine {
   private activeReservations: Map<string, BudgetReservation> = new Map(); // reservationId -> record
