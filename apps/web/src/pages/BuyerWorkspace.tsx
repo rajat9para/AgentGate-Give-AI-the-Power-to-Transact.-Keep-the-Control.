@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Send, Bot, User, ShoppingCart, AlertTriangle, CheckCircle2,
   XCircle, ArrowRightLeft, CreditCard, FileText, Zap, Sparkles,
@@ -6,6 +7,8 @@ import {
   Star, Truck, ChevronLeft, ChevronRight, X, Printer, Store, Package
 } from 'lucide-react';
 import { buyerApi } from '../lib/api';
+import RazorpayModal from '../components/RazorpayModal';
+import OrderConfirmationView from './OrderConfirmationView';
 
 interface Message {
   id: string;
@@ -45,6 +48,7 @@ const PROMPT_SUGGESTIONS = [
 ];
 
 export default function BuyerWorkspace() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -59,6 +63,15 @@ export default function BuyerWorkspace() {
   const [lastResult, setLastResult] = useState<any>(null);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
+
+  // Razorpay Checkout Modal State
+  const [razorpayModalOpen, setRazorpayModalOpen] = useState(false);
+  const [checkoutProduct, setCheckoutProduct] = useState<any>(null);
+
+  // Confirmed Order Tracking Page State
+  const [confirmedOrder, setConfirmedOrder] = useState<any | null>(null);
+
+  // Tax Invoice Receipt Modal State
   const [receiptOrder, setReceiptOrder] = useState<any | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -119,6 +132,21 @@ export default function BuyerWorkspace() {
     }
   };
 
+  const handleOpenRazorpayCheckout = (candidate: any) => {
+    const prod = candidate.product || candidate;
+    const merchantName = candidate.merchant?.name || candidate.merchant || 'Verified Merchant';
+
+    setCheckoutProduct({
+      title: prod.title,
+      image_url: prod.image_url,
+      price: prod.price,
+      original_price: prod.original_price,
+      merchant_name: merchantName,
+      negotiated_price: Math.round(prod.price * 0.92), // 8% negotiation discount
+    });
+    setRazorpayModalOpen(true);
+  };
+
   const handleSendPrompt = async (text: string) => {
     if (!text.trim() || loading) return;
 
@@ -142,8 +170,6 @@ export default function BuyerWorkspace() {
       const result = await buyerApi.sendIntent('demo-buyer-001', userMsg.content);
       setLastResult(result);
 
-      // Clean & Organized Message Formatting:
-      // If result has candidates or execution summary, show clean structured response:
       if (result.intent?.conversational_reply) {
         setMessages(prev => [
           ...prev,
@@ -210,6 +236,17 @@ export default function BuyerWorkspace() {
       track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
+
+  // If viewing confirmed order tracking page:
+  if (confirmedOrder) {
+    return (
+      <OrderConfirmationView
+        order={confirmedOrder}
+        onBackToShopping={() => setConfirmedOrder(null)}
+        onViewHistory={() => navigate('/buyer/history')}
+      />
+    );
+  }
 
   return (
     <div>
@@ -315,10 +352,11 @@ export default function BuyerWorkspace() {
                                 )}
                               </div>
 
+                              {/* Direct Razorpay Checkout Trigger */}
                               <button
                                 className="btn btn-primary"
                                 style={{ marginTop: 'auto', fontSize: 12, padding: '8px 12px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6 }}
-                                onClick={() => handleSendPrompt(`Buy ${prod.title}`)}
+                                onClick={() => handleOpenRazorpayCheckout(c)}
                                 disabled={loading}
                               >
                                 <Zap size={14} /> Buy with Razorpay
@@ -395,8 +433,8 @@ export default function BuyerWorkspace() {
                         </div>
                       </div>
 
-                      {/* View Invoice Button */}
-                      <div style={{ marginTop: 14, paddingTop: 10, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
+                      {/* Direct Post-Purchase Actions */}
+                      <div style={{ marginTop: 14, paddingTop: 10, borderTop: '1px solid var(--border)', display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                         <button
                           className="btn btn-secondary"
                           style={{ fontSize: 12, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 6 }}
@@ -408,7 +446,25 @@ export default function BuyerWorkspace() {
                             payment: msg.data.payment,
                           })}
                         >
-                          <FileText size={14} /> View Tax Invoice / Receipt
+                          <FileText size={14} /> View Tax Invoice
+                        </button>
+                        <button
+                          className="btn btn-primary"
+                          style={{ fontSize: 12, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 6 }}
+                          onClick={() => setConfirmedOrder({
+                            id: msg.data.order.id,
+                            product_title: msg.data.selected?.product?.title,
+                            product_image: msg.data.selected?.product?.image_url,
+                            merchant_name: msg.data.selected?.merchant?.name,
+                            total_amount: msg.data.selected?.product?.price || msg.data.order.total_amount,
+                            negotiated_amount: msg.data.negotiation?.final_price || msg.data.order.negotiated_amount,
+                            currency: 'INR',
+                            payment_method: msg.data.order.payment_method || 'card',
+                            razorpay_order_id: msg.data.order.razorpay_order_id,
+                            created_at: new Date().toISOString(),
+                          })}
+                        >
+                          <Package size={14} /> Full Order Tracking Page
                         </button>
                       </div>
                     </div>
@@ -555,6 +611,21 @@ export default function BuyerWorkspace() {
           )}
         </div>
       </div>
+
+      {/* Razorpay Standard Checkout & Recovery Modal */}
+      {checkoutProduct && (
+        <RazorpayModal
+          isOpen={razorpayModalOpen}
+          onClose={() => setRazorpayModalOpen(false)}
+          onSuccess={(orderData) => {
+            setRazorpayModalOpen(false);
+            setConfirmedOrder(orderData);
+          }}
+          product={checkoutProduct}
+          negotiatedPrice={checkoutProduct.negotiated_price}
+          razorpayOrderId={`order_rzp_${Date.now().toString(36)}`}
+        />
+      )}
 
       {/* Tax Invoice Modal Popup */}
       {receiptOrder && (

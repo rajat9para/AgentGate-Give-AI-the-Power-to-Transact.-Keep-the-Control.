@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Package, Search, Filter, Sparkles, Check, Truck, Star } from 'lucide-react';
+import { Package, Search, Filter, Sparkles, Check, Truck, Star, Zap } from 'lucide-react';
 import { merchantApi } from '../lib/api';
+import RazorpayModal from '../components/RazorpayModal';
 
 const MERCHANTS = [
   { id: 'merchant-runpro', name: 'RunPro Sports' },
@@ -15,6 +16,9 @@ export default function MerchantCatalog() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [loaded, setLoaded] = useState(false);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [selectedProductForCheckout, setSelectedProductForCheckout] = useState<any>(null);
+  const [successOrder, setSuccessOrder] = useState<any>(null);
 
   useEffect(() => {
     setLoaded(false);
@@ -197,10 +201,44 @@ export default function MerchantCatalog() {
                     </div>
                   </div>
                 )}
+
+                {/* Instant Checkout Button */}
+                <button
+                  className="btn btn-primary"
+                  style={{ marginTop: 14, fontSize: 13, padding: '9px 14px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6 }}
+                  onClick={() => {
+                    const currentMerchant = MERCHANTS.find(m => m.id === selectedMerchant)?.name || 'Verified Merchant';
+                    setSelectedProductForCheckout({
+                      title: product.title,
+                      image_url: product.image_url,
+                      price: product.price,
+                      original_price: product.original_price,
+                      merchant_name: currentMerchant,
+                      negotiated_price: Math.round(product.price * 0.92),
+                    });
+                    setCheckoutModalOpen(true);
+                  }}
+                >
+                  <Zap size={14} /> Buy with Razorpay
+                </button>
               </div>
             );
           })}
         </div>
+      )}
+
+      {/* Razorpay Standard Checkout Modal */}
+      {selectedProductForCheckout && (
+        <RazorpayModal
+          isOpen={checkoutModalOpen}
+          onClose={() => setCheckoutModalOpen(false)}
+          onSuccess={(orderData) => {
+            setCheckoutModalOpen(false);
+            setSuccessOrder(orderData);
+          }}
+          product={selectedProductForCheckout}
+          negotiatedPrice={selectedProductForCheckout.negotiated_price}
+        />
       )}
     </div>
   );
