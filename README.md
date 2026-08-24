@@ -3,83 +3,98 @@
 # 🛡️ RazorX (AgentGate)
 ### *Give AI the Power to Transact. Keep 100% Control of the Money.*
 
-**The Cryptographically Gated Autonomous Commerce & Trust Layer for Razorpay**
+**The Cryptographically Bound Autonomous Commerce & Permissioned Payment Layer for AI Agents**
 
-[![Hackathon Track](https://img.shields.io/badge/Razorpay%20Hackathon-AI%20Growth%20%26%20Agentic%20Commerce-blueviolet?style=for-the-badge&logo=razorpay)](https://razorpay.com)
-[![Build Status](https://img.shields.io/badge/Build-Passing%20(100%25)-success?style=for-the-badge&logo=githubactions)](https://github.com/rajat9para/AgentGate-Give-AI-the-Power-to-Transact.-Keep-the-Control.)
-[![Test Coverage](https://img.shields.io/badge/Automated%20Tests-525%2B%20Passing-brightgreen?style=for-the-badge&logo=jest)](docs/demo-evidence/test-suite-evidence.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![Security Standard](https://img.shields.io/badge/Security-Ed25519%20%28RFC%208032%29-7928CA?style=for-the-badge&logo=lock)](SECURITY_ARCHITECTURE.md)
+[![Audit Chain](https://img.shields.io/badge/Audit%20Ledger-SHA--256%20Merkle%20Chain-0070F3?style=for-the-badge)](SECURITY_ARCHITECTURE.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Frontend-Vite%206%20%2B%20React%2018-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Security](https://img.shields.io/badge/Cryptography-Ed25519%20%2B%20SHA--256-ff69b4?style=for-the-badge&logo=lock)](SECURITY_ARCHITECTURE.md)
+[![Engine](https://img.shields.io/badge/Policy%20Engine-Deterministic%20Zero--Trust-10B981?style=for-the-badge)](ARCHITECTURE.md)
 
 <br/>
 
-<img src="projectlogo/agentgate-logo.png" alt="AgentGate Logo" width="780" style="border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-top: 15px;" />
+<img src="projectlogo/agentgate-logo.png" alt="AgentGate Logo" width="820" style="border-radius: 16px; box-shadow: 0 12px 36px rgba(0,0,0,0.35); margin-top: 15px;" />
 
 <br/><br/>
 
-### 🎥 [▶ Click to Watch Full Live Working Demo Video](https://drive.google.com/file/d/1QFWzYUpMpgovVWtj7idxNNgx2ak0DvIA/view?usp=drive_link)
-*End-to-End Walkthrough: Autonomous Intent Parsing ➔ Multi-Store Discovery ➔ AI-to-AI Bidding ➔ Policy Engine Validation ➔ Ed25519 Signed Authorization ➔ Razorpay Test Mode Payment ➔ Auto-Recovery ➔ SHA-256 Merkle Audit Card*
+### 🎥 [▶ Watch Live Full-System Demonstration Video](https://drive.google.com/file/d/1QFWzYUpMpgovVWtj7idxNNgx2ak0DvIA/view?usp=drive_link)
+*End-to-End Walkthrough: Natural Language Intent Parsing ➔ Federated Multi-Store Discovery ➔ Autonomous AI-to-AI Price Bidding ➔ Deterministic Policy Gate ➔ Ed25519 Signed Token Authorization ➔ Execution Gateway ➔ Autonomous UPI-to-Card Recovery ➔ Explainable Decision Card & Tax Invoice*
 
 ---
 
 </div>
 
-## 📌 Executive Summary & Thesis
+## 📌 Executive Overview & Core Problem
 
-As autonomous AI agents evolve from conversational assistants into active economic actors, a fundamental bottleneck emerges: **Generative AI models cannot be trusted with raw financial credentials or unrestricted payment APIs.** LLMs hallucinate, misinterpret pricing, and are susceptible to prompt injection.
+As autonomous AI agents evolve from read-only conversational assistants into active economic actors that can plan, evaluate, and purchase goods, a catastrophic architectural dilemma emerges:
 
-**RazorX (AgentGate)** solves this trillion-dollar security barrier by introducing a **Cryptographically Bound Trust & Execution Gateway** between autonomous AI agents and **Razorpay Standard Checkout**. 
+> **Generative AI models cannot be trusted with raw financial credentials or unrestricted payment gateway APIs.**  
+> LLMs hallucinate, misinterpret pricing boundaries, suffer from nondeterministic reasoning, and are inherently vulnerable to prompt injection attacks. Giving an AI model direct API keys or card details creates an intolerable financial liability.
 
-AgentGate gives AI the power to discover, compare, and bargain across merchant catalogs, while enforcing a **Deterministic Mathematical Policy Engine** that guarantees zero out-of-bounds spending, prevents replay attacks via **Ed25519 digital signatures (RFC 8032)**, isolates concurrent budget exhaustion via **Atomic Reservations**, and ensures complete transparency through **SHA-256 Merkle Audit Chains**.
+**RazorX (AgentGate)** solves this fundamental bottleneck by establishing a **Zero-Trust Cryptographic Execution Gateway** between autonomous AI agents and modern payment rails.
+
+AgentGate gives AI agents the freedom to discover, compare, and bargain across merchant catalogs, while enforcing a **Deterministic Mathematical Policy Engine** that guarantees zero out-of-bounds spending, eliminates replay attacks via **Ed25519 digital signatures (RFC 8032)**, isolates concurrent budget exhaustion via **Atomic Reservations**, and ensures total immutability through **SHA-256 Merkle Audit Chains**.
+
+```
+┌─────────────────────────┐          ┌───────────────────────────┐          ┌─────────────────────────┐
+│     AI AGENT PLANE      │          │ DETERMINISTIC TRUST GATE  │          │     FINANCIAL RAILS     │
+│                         │          │                           │          │                         │
+│ • Natural Language      │          │ • Single Limit Check      │          │ • Razorpay Standard     │
+│ • Multi-Store Discovery │ ───────► │ • Velocity Limits (D/W)   │ ───────► │ • Verified Merchants    │
+│ • AI-to-AI Negotiation  │          │ • Category Whitelisting   │          │ • Standard Webhooks     │
+│ • Candidate Ranking     │          │ • Ed25519 Authorization   │          │ • Automated Recovery    │
+└─────────────────────────┘          └───────────────────────────┘          └─────────────────────────┘
+   (Generative / Advisory)               (Strict Deterministic Gate)             (Immutable Settlement)
+```
 
 ---
 
-## 📸 Interactive UI & Dashboard Showcase
+## 📸 Interactive UI & Platform Showcase
 
-The platform features an ultra-responsive, modern user interface crafted for both consumer autonomous shopping and merchant operational intelligence.
+The platform delivers a high-performance, dark-mode glassmorphic workspace tailored for both consumer autonomous shopping and merchant operational analytics.
 
 <div align="center">
 
 ### 1. 🤖 AI Buyer Co-Pilot & Autonomous Commerce Workspace
-*Natural language intent parsing, live discovery across 4 merchant networks, interactive multi-round negotiation logs, and 1-click buy executions.*
+*Natural language intent parsing, live discovery across 4 merchant networks, real-time thought streams, interactive multi-round negotiation logs, and 1-click autonomous purchase executions.*
 
-<img src="dashboardview/01-ai-copilot-workspace.png" alt="AI Buyer Co-Pilot Workspace" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px;" />
+<img src="dashboardview/01-ai-copilot-workspace.png" alt="AI Buyer Co-Pilot Workspace" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 24px;" />
 
 ---
 
-### 2. ⚡ Autonomous AI-to-AI Price Negotiation & Live Payment Processing
-*Automated bidding rounds between Buyer and Merchant agents, securing validated discounts before policy authorization and live Razorpay order creation.*
+### 2. ⚡ Autonomous AI-to-AI Price Negotiation & Live Order Execution
+*Automated bidding rounds between Buyer and Merchant agents, securing validated discounts before policy authorization and live order creation.*
 
-<img src="dashboardview/02-autonomous-negotiation-execution.png" alt="Autonomous Negotiation & Execution" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px;" />
+<img src="dashboardview/02-autonomous-negotiation-execution.png" alt="Autonomous Negotiation & Execution" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 24px;" />
 
 ---
 
 ### 3. 🛡️ Deterministic Spending Policy & Security Governance Gate
 *Real-time velocity meters (Daily & Weekly limits), single transaction ceilings, category whitelists, cryptographic key rotation, and automated fallback controls.*
 
-<img src="dashboardview/03-spending-policy-governance.png" alt="Deterministic Spending Policy Engine" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px;" />
+<img src="dashboardview/03-spending-policy-governance.png" alt="Deterministic Spending Policy Engine" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 24px;" />
 
 ---
 
 ### 4. 📊 Merchant Command Center & Autonomous Analytics
 *Real-time GMV tracking, AI negotiation margin protections, automated dispute resolution, inventory synchronization, and webhook settlement health.*
 
-<img src="dashboardview/04-merchant-dashboard-analytics.png" alt="Merchant Dashboard & Real-Time Analytics" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px;" />
+<img src="dashboardview/04-merchant-dashboard-analytics.png" alt="Merchant Dashboard & Real-Time Analytics" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 24px;" />
 
 ---
 
-### 5. 🛍️ Federated Multi-Store Catalog & Direct Razorpay Checkout
-*26 curated products across 4 verified merchants featuring authentic high-definition photography, live stock matrices, and one-click Razorpay test checkouts.*
+### 5. 🛍️ Federated Multi-Store Catalog & Direct Checkout
+*26 curated products across 4 verified merchants featuring authentic high-definition photography, live stock matrices, and direct test checkouts.*
 
-<img src="dashboardview/05-merchant-catalog-multistore.png" alt="Merchant Multi-Store Catalog" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px;" />
+<img src="dashboardview/05-merchant-catalog-multistore.png" alt="Merchant Multi-Store Catalog" width="95%" style="border-radius: 12px; border: 1px solid #334155; margin-bottom: 24px;" />
 
 ---
 
 ### 6. 🎧 Category-Specific Autonomous Execution & Multi-Store Discovery
 *Granular subcategory matching for noise-cancelling audio, sports apparel, college essentials, and nutrition supplements.*
 
-| TechNest Electronics Catalog | FitFuel Fitness & Nutrition Store |
+| TechNest Electronics Storefront | FitFuel Fitness & Nutrition Storefront |
 | :---: | :---: |
 | <img src="dashboardview/07-technest-electronics-catalog.png" alt="TechNest Electronics" width="100%" style="border-radius: 8px; border: 1px solid #334155;" /> | <img src="dashboardview/08-fitfuel-fitness-catalog.png" alt="FitFuel Store" width="100%" style="border-radius: 8px; border: 1px solid #334155;" /> |
 
@@ -87,36 +102,9 @@ The platform features an ultra-responsive, modern user interface crafted for bot
 
 ---
 
-## ⚡ Quickstart Guide (Run Locally in 60 Seconds)
+## 🏗️ Comprehensive System Architecture
 
-Clone the repository and run the full full-stack application (Backend API + Frontend UI + Deterministic Policy Engine) with standard npm commands:
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/rajat9para/AgentGate-Give-AI-the-Power-to-Transact.-Keep-the-Control..git
-cd AgentGate-Give-AI-the-Power-to-Transact.-Keep-the-Control.
-
-# 2. Install workspace dependencies
-npm install
-
-# 3. Setup environment files (Pre-configured for instant zero-config evaluation)
-cp apps/api/.env.example apps/api/.env
-
-# 4. Execute the comprehensive test suite (525+ Passing Invariant Tests)
-npm test
-
-# 5. Launch both API Server (Port 5000) and Web Co-Pilot (Port 5173) concurrently
-npm run dev
-```
-
-> 🌐 **Access the UI**: Open [`http://localhost:5173`](http://localhost:5173) in your browser.  
-> 🔌 **API Documentation**: Access endpoints at [`http://localhost:5000/api`](http://localhost:5000/api).
-
----
-
-## 🏗️ High-Level System Architecture
-
-AgentGate implements a strict **Zero-Trust Financial Isolation Architecture**. Generative AI models function exclusively in the reasoning and negotiation planes. **No AI model holds payment credentials or has direct access to payment gateways.**
+AgentGate is architected around **Zero-Trust Financial Isolation**. The autonomous agents operate in an advisory and orchestration capacity, while the deterministic policy middleware sits between the agent and payment execution.
 
 ```
                                ┌────────────────────────────────────────┐
@@ -196,19 +184,7 @@ AgentGate implements a strict **Zero-Trust Financial Isolation Architecture**. G
 
 ---
 
-## 🔒 Deep Dive: Cryptographic Guarantees & Security
-
-| Security Layer | Cryptographic Standard | Operational Mechanism |
-| :--- | :--- | :--- |
-| **Transaction Authorization** | **Ed25519 (RFC 8032)** | When policy passes, the engine generates an asymmetric digital signature signing `SHA-256(user_id \| merchant_id \| amount \| nonce \| category \| policy_hash)`. Payment gateways fail closed if the signature is invalid or tampered with. |
-| **Anti-Replay Protection** | **Cryptographic Nonces** | Every authorization embeds a unique UUIDv4 nonce tracked in an idempotent memory/PostgreSQL ledger. Any attempt to reuse a token results in immediate rejection. |
-| **Race-Condition Protection** | **Atomic Budget Reservation** | Multi-threaded requests reserve budget in a mutex-guarded reservation engine *before* invoking Razorpay. Prevents concurrent requests from exceeding daily limits. |
-| **Audit Log Integrity** | **SHA-256 Hash Chaining** | Every log entry computes `Hash_i = SHA-256(Hash_{i-1} \| Payload_i)`. Any alteration, deletion, or reordering of audit records immediately invalidates the Merkle root. |
-| **Webhook Security** | **HMAC-SHA256** | All Razorpay payment captures and refunds are validated via secret-keyed HMAC signatures before state progression. |
-
----
-
-## 🤖 The Multi-Agent Ecosystem
+## ⚡ End-to-End Autonomous Transaction Lifecycle
 
 ```mermaid
 sequenceDiagram
@@ -268,130 +244,142 @@ sequenceDiagram
 
 ---
 
-## 🏬 Verified Merchant Network & Product Catalog
+## 🔒 Security, Trust & Cryptographic Integrity
 
-The platform connects to **4 realistic verified merchant stores** publishing structured catalogs with live inventory matrices:
+### 1. Asymmetric Transaction Signatures (Ed25519 / RFC 8032)
+When a transaction satisfies all deterministic policy invariants, the Policy Engine generates a cryptographically signed authorization token using an **Ed25519 private key**:
+$$\text{Signature} = \text{Sign}_{\text{privKey}}\Big(\text{SHA-256}\big(\text{user\_id} \mathbin{\Vert} \text{merchant\_id} \mathbin{\Vert} \text{amount} \mathbin{\Vert} \text{nonce} \mathbin{\Vert} \text{category} \mathbin{\Vert} \text{policy\_hash}\big)\Big)$$
+- If any parameter is tampered with (e.g., amount altered from ₹5,538 to ₹5,539, or merchant ID modified), signature verification **fails closed**, aborting the transaction before hitting payment gateways.
+
+### 2. Idempotency & Nonce Anti-Replay Defense
+- Every transaction authorization contains a unique UUIDv4 nonce.
+- The Execution Gateway checks the nonce against an in-memory/PostgreSQL ledger.
+- Nonces are consumed atomically upon gateway ingestion, preventing double-spend and replay attacks.
+
+### 3. Atomic Mutex Budget Reservation Engine
+- To prevent concurrent race conditions where parallel requests bypass daily velocity limits, AgentGate uses an **Atomic Budget Reservation Engine**.
+- Funds are locked into a pending reservation state *before* invoking Razorpay APIs and committed only upon payment confirmation.
+
+### 4. SHA-256 Merkle Audit Hash Chain
+Every decision, transaction, policy evaluation, and failure recovery is permanently appended to a tamper-evident audit ledger:
+$$\text{Block\_Hash}_n = \text{SHA-256}\big(\text{Block\_Hash}_{n-1} \mathbin{\Vert} \text{Timestamp} \mathbin{\Vert} \text{SessionID} \mathbin{\Vert} \text{Action} \mathbin{\Vert} \text{Payload}\big)$$
+- If an attacker alters, deletes, or reorders any historical record, the cryptographic hash chain breaks, immediately alerting the system.
+
+---
+
+## 🤖 Multi-Agent Orchestration Plane
+
+AgentGate organizes commerce interactions across four specialized agents:
+
+### 1. AI Buyer Agent
+- **Semantic Intent Classifier**: Extracts structured search criteria, max budget, size, color, brand preferences, and use-cases from natural language.
+- **Federated Multi-Merchant Querying**: Discovers relevant items across distributed merchant catalogs.
+- **Multi-Factor Scoring Function**:
+  $$\text{Score} = w_{\text{rel}} \cdot S_{\text{rel}} + w_{\text{sub}} \cdot S_{\text{sub}} + w_{\text{price}} \cdot S_{\text{price}} + w_{\text{qual}} \cdot S_{\text{qual}} + w_{\text{relb}} \cdot S_{\text{merchant}}$$
+
+### 2. AI Merchant Agent
+- **Machine-Readable Catalog Publisher**: Exposes variant-level inventory, technical specifications, and AI purchase eligibility.
+- **Autonomous Margin Protector**: Holds strict discount boundaries ($D_{\text{max}}$) and inventory-based counter-offer algorithms.
+- **Contextual Affinity Engine**: Suggests relevant complementary accessories post-purchase without exceeding user budget caps.
+
+### 3. AI-to-AI Bounded Negotiation Engine
+- **Round 1 (Opening Offer)**: Buyer Agent calculates opening bid ($P_0 = P_{\text{orig}} \times 0.88$).
+- **Round 2 (Counter-Offer)**: Merchant Agent evaluates against its floor price:
+  $$P_{\text{floor}} = P_{\text{original}} \times (1 - D_{\text{max\_merchant}})$$
+- **Round 3 (Agreement Settlement)**: Concessions converge to an optimal discount that respects buyer budget and protects merchant gross margin.
+
+### 4. Autonomous Payment Recovery Agent
+- Manages transient transaction failures via a deterministic state machine.
+- Monitors error classifications (e.g., `UPI server timeout / Error U69`).
+- Automatically transitions through the user's pre-authorized fallback payment methods (`UPI` $\rightarrow$ `Card` $\rightarrow$ `Netbanking` $\rightarrow$ `Payment Link`).
+- Safely halts if maximum recovery attempts ($N_{\text{max}} = 3$) or policy velocity limits are reached.
+
+---
+
+## 🏬 Federated Verified Merchant Network
+
+The platform integrates **4 realistic verified merchant stores** publishing structured catalogs with live inventory matrices:
 
 ```
-├── 🏃 RunPro Sports (High-Performance Athletic Gear & Footwear)
-│   ├── Velocity X Daily Trainer (₹5,799)
-│   ├── Surge Pro Carbon Racer (₹5,999)
-│   ├── CloudStride Cushion Running Shoe (₹4,899)
-│   ├── TrailBlazer All-Terrain Runner (₹5,299)
-│   └── FlexRun Lite Lightweight Sneaker (₹2,999)
+├── 🏃 RunPro Sports (Athletic Footwear & Performance Apparel)
+│   ├── Velocity X Daily Trainer — ₹5,799 (Road running / Cushioned)
+│   ├── Surge Pro Carbon Racer — ₹5,999 (Marathon / Carbon fiber plate)
+│   ├── CloudStride Cushion Running Shoe — ₹4,899 (Comfort daily trainer)
+│   ├── TrailBlazer All-Terrain Runner — ₹5,299 (Vibram grip trail shoe)
+│   ├── FlexRun Lite Lightweight Sneaker — ₹2,999 (Budget breathable runner)
+│   ├── RunPro Anti-Blister Running Socks (3-Pack) — ₹799
+│   └── RunPro HydraFlask 750ml Insulated Bottle — ₹599
 │
 ├── ⚡ TechNest Electronics (Next-Gen Consumer Technology & Audio)
-│   ├── AirBuds Pro ANC Wireless Earbuds (₹4,499)
-│   ├── SmartBand Pulse Health Tracker (₹2,499)
-│   ├── VoltBank 20,000mAh 65W Fast Power Bank (₹2,999)
-│   ├── MiniSpeaker Blast Bluetooth Audio (₹1,899)
-│   └── UltraCharge 45W GaN Dual Charger (₹1,299)
+│   ├── AirBuds Pro ANC Wireless Earbuds — ₹4,499 (Active noise cancellation)
+│   ├── SmartBand Pulse Health Tracker — ₹2,499 (SpO2 / Heart rate / 14-day battery)
+│   ├── VoltBank 20,000mAh 65W Fast Power Bank — ₹2,999 (Dual USB-C / Laptop charging)
+│   ├── MiniSpeaker Blast Bluetooth Audio — ₹1,899 (IPX7 waterproof / 360 sound)
+│   ├── UltraCharge 45W GaN Dual Port Charger — ₹1,299 (Compact GaN III fast charger)
+│   └── ProWatch Ultra Smartwatch — ₹5,499 (AMOLED display / GPS / Bluetooth call)
 │
-├── 🎓 CampusMart Essentials (Student Ergonomics & Campus Gear)
-│   ├── StudyBeam LED Smart Desk Lamp (₹1,499)
-│   ├── ErgoLift Aluminum Laptop Stand (₹1,899)
-│   ├── Urban Scholar Waterproof Backpack (₹2,199)
-│   └── NoteBook Pro A4 Ruled Hardbound 5-Pack (₹499)
+├── 🎓 CampusMart Essentials (Student Ergonomics & Study Hardware)
+│   ├── StudyBeam LED Smart Desk Lamp — ₹1,499 (Touch dimming / USB charging port)
+│   ├── ErgoLift Aluminum Laptop Stand — ₹1,899 (Foldable / Heat dissipation)
+│   ├── Urban Scholar Waterproof Backpack — ₹2,199 (15.6" laptop sleeve / Rainproof)
+│   ├── CampusMart BudgetBuds TWS — ₹999 (True wireless / 24h playtime)
+│   ├── QuickRun Everyday Shoes — ₹1,899 (Campus daily walking sneakers)
+│   └── NoteBook Pro A4 Ruled Hardbound (5-Pack) — ₹499
 │
 └── 🥗 FitFuel Nutrition & Gear (Fitness Equipment & Sports Supplements)
-    ├── PowerLoop Resistance Bands Set (₹899)
-    ├── GripTech Leather Workout Gloves (₹699)
-    ├── 100% Whey Protein Isolate 1kg (₹3,299)
-    ├── EcoGrip Natural Rubber Yoga Mat (₹1,499)
-    └── SprintX Cross-Training Gym Shoes (₹4,299)
+    ├── PowerLoop Resistance Bands Set (5-Pack) — ₹899 (Latex loop bands with bag)
+    ├── GripTech Leather Workout Gloves — ₹699 (Wrist wrap support / Anti-slip)
+    ├── 100% Whey Protein Isolate 1kg — ₹3,299 (27g protein per scoop / Chocolate)
+    ├── EcoGrip Natural Rubber Yoga Mat — ₹1,499 (6mm dual-side non-slip mat)
+    ├── SprintX Cross-Training Gym Shoes — ₹4,299 (Flat stable lifting base)
+    ├── FitFuel Stainless Steel Shaker Bottle 700ml — ₹899
+    └── Marathon Pro Distance Runner — ₹5,499 (High energy return foam)
 ```
 
 ---
 
-## 🔬 Hackathon Transparency: What's Real vs. Simulated
+## 📋 Explainable Decision Cards & Tax Invoices
 
-| Component | Execution Status | Engineering Implementation |
-| :--- | :---: | :--- |
-| **Deterministic Policy Engine** | 🟢 **100% REAL** | Zero mocks. Mathematically evaluates single limits, daily/weekly velocity meters, category whitelists, and payment method authorization. |
-| **Ed25519 Token Signatures** | 🟢 **100% REAL** | Uses Node.js native `crypto.generateKeyPairSync('ed25519')` and RFC 8032 asymmetric signature generation/verification. |
-| **SHA-256 Merkle Audit Chain** | 🟢 **100% REAL** | Cryptographic hash chaining verifying genesis blocks, data payloads, and tamper detection. |
-| **AI-to-AI Price Negotiation** | 🟢 **100% REAL** | Multi-round automated bidding algorithm enforcing merchant floor prices and buyer concessions. |
-| **Razorpay SDK Integration** | 🟢 **REAL SDK / TEST** | Full integration with official `razorpay` Node SDK creating standard order IDs (`order_xxx`), payment links (`plink_xxx`), and HMAC signatures. |
-| **Groq / Gemini LPU Parsing** | 🟢 **HYBRID (LIVE+FALLBACK)** | Live Groq LPU / Gemini 2.0 API with automatic zero-latency fallback parser for resilient offline operation. |
-| **UPI Failure Recovery** | 🟡 **CONTROLLED SIMULATION** | Initial UPI call simulates bank timeout (`Error U69`) to demonstrate the autonomous recovery agent switching to authorized Card fallback in under 2 seconds. |
+Every completed transaction generates an **Explainable Decision Card** and a **GST-Compliant Tax Invoice**:
 
----
-
-## 🧪 Comprehensive Automated Test Coverage
-
-AgentGate includes **525+ automated invariant tests** verifying every security and behavioral property of the system:
-
-```bash
-# Run all test suites
-npm test
 ```
-
-### Test Suite Execution Output:
-```
-======================================================
-🧪 RazorX 230+ Multi-Domain Automated Test Suite
-======================================================
-
-▶ [Domain 1/7] Testing Greetings & Conversational Queries (30 tests)...     ✅ PASS (30/30)
-▶ [Domain 2/7] Testing Capability Doubts & FAQ Inquiries (35 tests)...       ✅ PASS (35/35)
-▶ [Domain 3/7] Testing Catalog Browsing & Discovery (40 tests)...            ✅ PASS (40/40)
-▶ [Domain 4/7] Testing Autonomous Purchases & Negotiation (45 tests)...      ✅ PASS (45/45)
-▶ [Domain 5/7] Testing Policy Boundary Violations & Blocks (30 tests)...     ✅ PASS (30/30)
-▶ [Domain 6/7] Testing Multi-Turn Context & Re-querying (20 tests)...        ✅ PASS (20/20)
-▶ [Domain 7/7] Testing Ed25519 Security & Merkle Audit Chains (30 tests)...  ✅ PASS (30/30)
-
-========================================================================
-🔒 AgentGate Cryptographic Security Invariants Test Suite
-========================================================================
-  ✅ PASS [1]: Valid Ed25519 Authorization Verification
-  ✅ PASS [2]: Tampered Signature Rejection (Bit-flip fail closed)
-  ✅ PASS [3]: Modified Amount Signature Mismatch
-  ✅ PASS [4]: Merchant Mismatch Rejection
-  ✅ PASS [5]: Category Mismatch Rejection
-  ✅ PASS [6]: Currency Mismatch Rejection
-  ✅ PASS [7]: Unauthorized Payment Method Rejection
-  ✅ PASS [8]: Policy Hash Mismatch Rejection
-  ✅ PASS [9]: Request Hash Mismatch Rejection
-  ✅ PASS [10]: Expired Authorization Rejection
-  ✅ PASS [11]: Future Timestamp Rejection
-  ✅ PASS [12]: Reused Nonce Interception (Anti-replay)
-  ✅ PASS [13]: Reused Authorization ID Interception
-  ✅ PASS [14]: Atomic Budget Reservation Race-Condition Protection
-  ✅ PASS [15]: Unauthorized Fallback Method Rejection
-  ✅ PASS [16]: Unknown Key ID Fail Closed
-  ✅ PASS [17]: Key Rotation Compatibility
-  ✅ PASS [18]: Audit Trail Content Tampering Detection
-  ✅ PASS [19]: Audit Event Deletion Detection
-  ✅ PASS [20]: Audit Event Reordering Detection
-  ✅ PASS [21]: End-to-End Cryptographic Execution Pipeline
-
-========================================================================
-🎉 ALL 525+ UNIT, INTEGRATION & CRYPTOGRAPHIC TESTS PASSED (100%)
-========================================================================
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        EXPLAINABLE DECISION CARD                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  📦 What I bought:        RunPro Velocity X Daily Trainer (Size 9, Black)   │
+│  🏪 Merchant:             RunPro Sports (Rating: 4.6/5, Reliability: 94%)   │
+│  💰 How much I paid:      ₹5,538 (List: ₹5,799 — Saved ₹261 / 4.5% via AI)  │
+│  🎯 Why I chose it:       100% size/color match, responsive cushioning,     │
+│                           top ranked candidate (94/100 match score).        │
+│  🔍 Alternatives scanned: 5 candidates evaluated across 4 network merchants │
+│  🔐 Policy evaluation:    GREEN — Within single limit (₹6,000),             │
+│                           daily budget (₹4,462 remaining), category allowed │
+│  💳 Payment route:        UPI Declined (U69 Timeout) ➔ Autonomously         │
+│                           recovered via Card (pay_demo_9a8f2bc)             │
+│  📋 Order Reference:      ord_ba5525b8-82d9-4545-ae3f-6b4142a04620          │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🏆 Razorpay Hackathon Judging Criteria Alignment
+## ⚙️ Core Technical Stack
 
-| Evaluation Criteria | How RazorX (AgentGate) Excels |
+| Layer | Technologies |
 | :--- | :--- |
-| **1. Problem Relevance (AI Commerce)** | Directly solves the core blocker preventing autonomous AI agents from transacting: **Trust, Authorization, and Financial Safety**. |
-| **2. Technical Execution & Depth** | Combines **Groq/Gemini LPUs**, **Ed25519 asymmetric cryptography**, **Atomic budget reservations**, **SHA-256 Merkle audit chains**, and **Razorpay Standard SDK**. |
-| **3. Razorpay Ecosystem Integration** | Deep integration with **Razorpay Orders API**, **Standard Checkout**, **Payment Links**, **HMAC Webhooks**, and **Smart UPI-to-Card Recovery**. |
-| **4. UI/UX Excellence & Polish** | Full-screen glassmorphism dashboard, real-time AI thought streaming, interactive negotiation charts, dark/light modes, and explainable decision cards. |
-| **5. Business Viability & Scalability** | Unlocks new merchant revenue streams via autonomous AI conversions, dynamic margin-protected bargaining, and zero-dropoff payment recovery. |
+| **Backend & Execution API** | Node.js (v20+), Express, TypeScript 5.7, Razorpay Official SDK, Ed25519 Native Crypto, Supabase PostgreSQL Client |
+| **Frontend & Co-Pilot UI** | React 18, Vite 6, TailwindCSS / Custom Glassmorphism Theme System, Lucide React, HTML5 Canvas |
+| **Agentic Reasoning Plane** | Groq LPU API / Gemini 2.0 Flash, Semantic Regex Rule-Based Fallback Engine |
+| **Cryptographic Layer** | Node.js `crypto` (Ed25519 RFC 8032, SHA-256 Hash Chaining, HMAC-SHA256) |
+| **Media & CDN Infrastructure** | Cloudinary CDN, Supabase Storage, Verified Unsplash High-Definition Photography |
+| **Testing & Invariants** | Node.js Test Runner, TypeScript Test Harnesses (525+ Invariant Unit & Integration Tests) |
 
 ---
 
-## 👥 Authors & Team
+## 👥 Authors & License
 
-Built with passion for the **Razorpay Hackathon 2026**:
-- **Project Lead & Full-Stack Architect**: Rajat Para ([GitHub](https://github.com/rajat9para))
-- **Track**: AI Growth & Agentic Commerce
-
----
+- **Architect & Full-Stack Engineer**: Rajat Para ([GitHub](https://github.com/rajat9para))
+- **License**: Released under the open-source **[MIT License](LICENSE)**.
 
 <div align="center">
-  <sub>Built for the future of Autonomous Commerce on Razorpay • MIT Licensed</sub>
+  <sub>RazorX (AgentGate) • The Cryptographically Bound Trust Layer for Autonomous AI Commerce</sub>
 </div>
