@@ -288,11 +288,11 @@ export default function BuyerWorkspace() {
   }
 
   return (
-    <div className="layout-content-wrapper">
-      <div className="page-header">
+    <div className="workspace-wrapper">
+      <div className="workspace-page-header">
         <div>
-          <h1 className="page-title">Autonomous Commerce Workspace</h1>
-          <p className="page-subtitle">
+          <h1>Autonomous Commerce Workspace</h1>
+          <p>
             Delegate purchases to your AI Buyer Agent with real-time merchant negotiation and deterministic cryptographic policy control
           </p>
         </div>
@@ -684,7 +684,7 @@ export default function BuyerWorkspace() {
         </div>
 
         {/* Side Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="side-panel-container">
           {lastResult?.selected ? (
             <div className="decision-card">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>

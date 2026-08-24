@@ -38,7 +38,7 @@ export default function MerchantDashboard() {
 
   return (
     <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h1>Merchant AI Analytics Dashboard</h1>
           <p>Real-time AI commerce revenue, autonomous conversion rates, and recovery statistics</p>
@@ -54,17 +54,17 @@ export default function MerchantDashboard() {
               <option key={m.id} value={m.id}>{m.name}</option>
             ))}
           </select>
-          <button className="btn btn-secondary" onClick={() => fetchMetrics(selectedMerchant)} disabled={refreshing}>
+          <button className="btn btn-secondary" onClick={() => fetchMetrics(selectedMerchant)} disabled={refreshing} title="Refresh Analytics">
             <RefreshCw size={15} className={refreshing ? 'spinner' : ''} />
           </button>
         </div>
       </div>
 
       {/* Merchant Overview Card */}
-      <div className="card" style={{ marginBottom: 24, background: 'linear-gradient(135deg, rgba(26, 26, 46, 0.8), rgba(99, 102, 241, 0.08))' }}>
+      <div className="card" style={{ marginBottom: 24, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+            <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
               <Store size={24} />
             </div>
             <div>
@@ -74,7 +74,7 @@ export default function MerchantDashboard() {
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <span className="badge badge-green">AI Storefront Connected</span>
             <span className="badge badge-purple">Reliability: {currentMerchantInfo.reliability}</span>
           </div>
@@ -127,7 +127,7 @@ export default function MerchantDashboard() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 20 }}>
             <div className="card">
               <div className="card-header">
                 <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
