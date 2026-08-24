@@ -117,9 +117,9 @@ export async function parseIntent(userMessage: string): Promise<StructuredIntent
 function checkFastPathGreetingOrHelp(message: string): StructuredIntent | null {
   const lower = message.toLowerCase().trim();
 
-  // Strict greetings check
-  const greetingRegex = /^(hi|hello|hey|greetings|good\s+(morning|afternoon|evening|day)|namaste|hola|sup|yo|howdy)[!.,?\s]*$/i;
-  if (greetingRegex.test(lower) || lower === 'hi' || lower === 'hello' || lower === 'hey') {
+  // Strict greetings & social phrases check
+  const greetingRegex = /^(hi|hello|hey|greetings|good\s+(morning|afternoon|evening|day|night)|namaste|hola|sup|yo|howdy|how\s+are\s+you|how\s+are\s+you\s+doing|who\s+are\s+you|who\s+made\s+you|who\s+created\s+you|what\s+is\s+your\s+name|are\s+you\s+an\s+ai|tell\s+me\s+a\s+joke|thank\s+you|thanks|bye|goodbye|see\s+you\s+later|have\s+a\s+nice\s+day|cool|awesome|nice\s+to\s+meet\s+you|hello\s+razorx|hi\s+assistant|hello\s+buyer\s+agent|hey\s+buddy|what\s+can\s+you\s+do\s+for\s+me)[!.,?\s]*$/i;
+  if (greetingRegex.test(lower) || lower.startsWith('hello') || lower.startsWith('hi ') || lower.startsWith('hey ')) {
     return {
       intent_type: 'greeting',
       is_shopping_intent: false,
@@ -132,13 +132,13 @@ function checkFastPathGreetingOrHelp(message: string): StructuredIntent | null {
     };
   }
 
-  // Help & Capability check
-  const helpRegex = /^(help|what\s+can\s+you\s+do|how\s+does\s+this\s+work|who\s+are\s+you|capabilities|features)[!.,?\s]*$/i;
-  if (helpRegex.test(lower)) {
+  // Help, Architecture & Capability Doubts check
+  const helpKeywords = ['how does', 'what is', 'can i', 'how do i', 'how do you', 'what happens', 'who are the', 'is my', 'explain', 'capabilities', 'features', 'help', 'what can you do'];
+  if (helpKeywords.some(kw => lower.includes(kw))) {
     return {
       intent_type: 'help',
       is_shopping_intent: false,
-      conversational_reply: "🛡️ **RazorX Autonomous Commerce Capabilities:**\n\n1. **Autonomous Discovery**: Searches across verified merchants (RunPro, TechNest, CampusMart, FitFuel).\n2. **Bounded Price Negotiation**: Multi-round discount negotiation with merchant AI agents.\n3. **Deterministic Policy Gate**: Checks single transaction limit (₹6,000), daily velocity limit, and category whitelist.\n4. **Ed25519 Cryptographic Authorization**: Signs approvals before payment execution.\n5. **Razorpay Checkout & Failure Recovery**: Creates real Razorpay orders and automatically recovers failed UPI attempts via authorized Card fallback.\n6. **Immutable Audit Trail**: SHA-256 hash-chained ledger for every transaction.\n\nTell me what you'd like to buy to get started!",
+      conversational_reply: "🛡️ **RazorX Autonomous Commerce Architecture & Protections:**\n\n1. **Autonomous Product Discovery**: Evaluates catalogs across 4 verified merchant networks (RunPro, TechNest, CampusMart, FitFuel).\n2. **AI-to-AI Price Negotiation**: Executes multi-round automated bidding with merchant agents to secure discounts.\n3. **Deterministic Policy Gate**: Enforces single transaction limits (₹6,000 default), daily/weekly velocity limits, and whitelisted categories before issuing authorizations.\n4. **Ed25519 Cryptographic Signatures**: Issues cryptographically signed transaction tokens (RFC 8032) bound to amount, merchant ID, and nonce.\n5. **Razorpay Standard Checkout & Auto-Recovery**: Creates real Razorpay orders and recovers simulated UPI timeouts via authorized Card fallback.\n6. **SHA-256 Merkle Audit Chain**: Every transaction and decision is permanently linked in a tamper-evident cryptographic hash chain.\n\nWhat item would you like to explore or purchase today?",
       category: 'running_shoes',
       max_price: 10000,
       preferences: [],
@@ -193,13 +193,16 @@ function parseIntentFallback(message: string): StructuredIntent {
       subcategory = 'racing';
       useCase = 'racing';
     }
-  } else if (lower.includes('earbud') || lower.includes('earphone') || lower.includes('headphone')) {
+  } else if (lower.includes('earbud') || lower.includes('earphone') || lower.includes('headphone') || lower.includes('pod')) {
     category = 'electronics';
     subcategory = 'earbuds';
-  } else if (lower.includes('watch') || lower.includes('smartwatch')) {
+  } else if (lower.includes('watch') || lower.includes('smartwatch') || lower.includes('tracker')) {
     category = 'electronics';
     subcategory = 'smartwatch';
-  } else if (lower.includes('speaker')) {
+  } else if (lower.includes('keyboard') || lower.includes('gaming') || lower.includes('electronic')) {
+    category = 'electronics';
+    subcategory = 'keyboard';
+  } else if (lower.includes('speaker') || lower.includes('audio') || lower.includes('sound')) {
     category = 'electronics';
     subcategory = 'speaker';
   } else if (lower.includes('charger') || lower.includes('adapter')) {
@@ -208,21 +211,29 @@ function parseIntentFallback(message: string): StructuredIntent {
   } else if (lower.includes('power bank') || lower.includes('powerbank')) {
     category = 'electronics';
     subcategory = 'power_bank';
-  } else if (lower.includes('yoga') || lower.includes('mat')) {
+  } else if (lower.includes('yoga') || lower.includes('mat') || lower.includes('fitness') || lower.includes('gym') || lower.includes('workout') || lower.includes('exercise')) {
     category = 'fitness';
     subcategory = 'yoga_mat';
-  } else if (lower.includes('protein') || lower.includes('whey') || lower.includes('nutrition')) {
+  } else if (lower.includes('protein') || lower.includes('whey') || lower.includes('nutrition') || lower.includes('supplement') || lower.includes('shake')) {
     category = 'nutrition';
     subcategory = 'protein';
-  } else if (lower.includes('backpack') || lower.includes('bag')) {
+  } else if (lower.includes('backpack') || lower.includes('bag') || lower.includes('clothing') || lower.includes('shirt') || lower.includes('tshirt') || lower.includes('short') || lower.includes('sock') || lower.includes('activewear')) {
     category = 'clothing';
     subcategory = 'backpack';
-  } else if (lower.includes('lamp') || lower.includes('desk')) {
+  } else if (lower.includes('student') || lower.includes('essential') || lower.includes('college') || lower.includes('lamp') || lower.includes('desk') || lower.includes('notebook') || lower.includes('pen') || lower.includes('stationery')) {
     category = 'student_essentials';
     subcategory = 'lamp';
   } else if (lower.includes('stand') || lower.includes('laptop')) {
     category = 'student_essentials';
     subcategory = 'laptop_stand';
+  } else if (lower.includes('accessory') || lower.includes('accessories') || lower.includes('shaker') || lower.includes('bottle') || lower.includes('strap') || lower.includes('band') || lower.includes('block')) {
+    category = 'accessories';
+    subcategory = 'bottle';
+  } else if (lower.includes('all') || lower.includes('product') || lower.includes('item') || lower.includes('catalog') || lower.includes('technest') || lower.includes('runpro') || lower.includes('campus') || lower.includes('fitfuel') || lower.includes('budget') || lower.includes('sport')) {
+    category = 'running_shoes';
+  } else if (hasPurchaseVerb || hasBrowseVerb) {
+    // If user explicitly said buy/purchase/order but category was exotic (e.g. graphics card, drone, car, sofa):
+    category = 'electronics';
   }
 
   // If no category matched at all and message has no commerce signals

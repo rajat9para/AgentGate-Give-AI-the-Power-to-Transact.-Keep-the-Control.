@@ -124,6 +124,40 @@ export async function executeBuyerFlow(
     policyResult: null, paymentId: null, orderId: null, result: 'success',
   });
 
+  // 🛡️ Pre-emptive Policy Check on Purchase Budget
+  const activePolicy = db.getUserPolicy(userId);
+  const singleLimit = activePolicy?.single_transaction_limit || 6000;
+
+  if (intent.purchase && intent.max_price > singleLimit) {
+    const policyResult = evaluateUserPolicy(userId, intent.max_price, intent.category, 'upi', {
+      agentId: 'buyer-agent',
+      purpose: `Purchase request for ${intent.category}`,
+    });
+
+    addMessage('agent', `🚫 **Policy Guardrail Blocked Transaction**: ${policyResult.reason}`, 'text');
+    createAuditLog({
+      agentId: 'buyer-agent', userId, merchantId: null, sessionId: session.id,
+      action: 'policy_evaluation', requestedAmount: intent.max_price, approvedAmount: null,
+      reason: policyResult.reason,
+      policyResult: policyResult.decision, paymentId: null, orderId: null, result: 'blocked',
+    });
+    db.updateAgentSession(session.id, { status: 'failed', result_summary: policyResult.reason });
+
+    return {
+      session_id: session.id,
+      intent,
+      candidates: [],
+      selected: null,
+      negotiation: null,
+      policy_evaluation: policyResult,
+      order: null,
+      payment: null,
+      opportunity: null,
+      audit_trail: getAuditTrail(session.id),
+      agent_messages: messages,
+    };
+  }
+
   // ---- Step 2: Search Products ----
   addMessage('agent', '🛒 Searching across all merchants...', 'text');
 
@@ -308,7 +342,7 @@ export async function executeBuyerFlow(
     session_id: session.id,
     variantId: variantMatch.variantId,
     quantity: 1,
-    simulateFailure: true, // For demo, initial UPI times out to trigger auto-recovery
+    simulateFailure: false,
   });
 
   let order = gatewayResult.order!;

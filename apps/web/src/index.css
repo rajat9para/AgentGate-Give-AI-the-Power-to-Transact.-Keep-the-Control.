@@ -970,6 +970,118 @@ body::before {
   border-bottom: none;
 }
 
+/* ============================================================
+   Amazon / Enterprise Marketplace Stacked Order History
+   ============================================================ */
+.order-stack-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.order-stack-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.order-stack-card:hover {
+  border-color: rgba(10, 133, 234, 0.4);
+  box-shadow: var(--shadow-md);
+}
+
+.order-stack-header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12px;
+}
+
+.order-stack-header-left {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.order-header-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-header-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.order-header-value {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.order-stack-body {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.order-stack-main {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-width: 320px;
+}
+
+.order-stack-thumb {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.order-stack-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.order-stack-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .order-stack-body {
+    flex-direction: column;
+  }
+  .order-stack-actions {
+    width: 100%;
+  }
+}
+
 @media (max-width: 1024px) {
   .sidebar { width: 80px; padding: 16px 8px; }
   .sidebar-logo-text, .sidebar-section, .sidebar-link span { display: none; }

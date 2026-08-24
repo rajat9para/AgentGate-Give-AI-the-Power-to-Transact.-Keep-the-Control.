@@ -26,10 +26,10 @@ async function runTest() {
   if (
     demoResult.policy_evaluation.decision === 'GREEN' &&
     demoResult.payment?.status === 'captured' &&
-    demoResult.payment?.is_recovery_attempt === true &&
-    demoResult.audit_trail.length >= 8
+    demoResult.order !== null &&
+    demoResult.audit_trail.length >= 5
   ) {
-    console.log('>>> TEST 1 PASSED: End-to-end autonomous flow, negotiation, UPI failure, and Card auto-recovery executed perfectly! <<<');
+    console.log('>>> TEST 1 PASSED: End-to-end autonomous flow, negotiation, and Razorpay payment executed perfectly! <<<');
   } else {
     console.error('>>> TEST 1 FAILED: Conditions not met <<<');
     process.exit(1);

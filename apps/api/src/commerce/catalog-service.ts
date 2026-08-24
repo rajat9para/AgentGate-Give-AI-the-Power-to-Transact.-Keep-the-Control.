@@ -9,7 +9,9 @@ import { db } from '../db/database.js';
  * Search products matching a structured intent across all merchants.
  */
 export function searchProducts(intent: StructuredIntent): Product[] {
-  const maxPrice = (intent.max_price && intent.max_price > 0) ? intent.max_price : undefined;
+  const baseMax = (intent.max_price && intent.max_price > 0) ? intent.max_price : undefined;
+  // If purchasing with negotiation, allow finding products slightly above budget that can be negotiated down
+  const maxPrice = (baseMax && intent.purchase) ? Math.round(baseMax * 1.15) : baseMax;
   const minPrice = (intent.min_price && intent.min_price > 0) ? intent.min_price : undefined;
 
   // First attempt: search with category, subcategory, maxPrice, inStock

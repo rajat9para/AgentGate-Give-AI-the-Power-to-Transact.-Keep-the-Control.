@@ -32,6 +32,9 @@ const weeklySpending: Map<string, { weekStart: string; total: number }> = new Ma
 
 // ---- Initialize Seed Data ----
 export function initializeDatabase(): void {
+  dailySpending.clear();
+  weeklySpending.clear();
+
   // Seed merchants
   for (const m of seedMerchants) {
     merchants.set(m.id, m);
