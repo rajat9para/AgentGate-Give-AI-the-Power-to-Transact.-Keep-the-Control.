@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Shield, CheckCircle2, RotateCcw, AlertCircle, Sparkles } from 'lucide-react';
+import { Save, Shield, CheckCircle2, RotateCcw, AlertCircle, Sparkles, Plus, Check } from 'lucide-react';
 import { buyerApi } from '../lib/api';
 
 const ALL_CATEGORIES = [
@@ -34,12 +34,22 @@ export default function BuyerPolicy() {
   const [loaded, setLoaded] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Local string buffers to prevent leading-zero and typing glitch
+  const [singleLimitStr, setSingleLimitStr] = useState('6000');
+  const [dailyLimitStr, setDailyLimitStr] = useState('10000');
+  const [weeklyLimitStr, setWeeklyLimitStr] = useState('25000');
+
   const fetchPolicy = () => {
     setLoaded(false);
     buyerApi.getPolicy('demo-buyer-001')
       .then((data) => {
         setPolicy(data.policy);
         setSpending(data.spending);
+        if (data.policy) {
+          setSingleLimitStr(String(data.policy.single_transaction_limit || 6000));
+          setDailyLimitStr(String(data.policy.daily_limit || 10000));
+          setWeeklyLimitStr(String(data.policy.weekly_limit || 25000));
+        }
         setLoaded(true);
       })
       .catch((err) => {
@@ -56,7 +66,15 @@ export default function BuyerPolicy() {
     if (!policy) return;
     setSaving(true);
     try {
-      await buyerApi.updatePolicy('demo-buyer-001', policy);
+      const payload = {
+        ...policy,
+        single_transaction_limit: Math.max(100, parseInt(singleLimitStr, 10) || 6000),
+        daily_limit: Math.max(100, parseInt(dailyLimitStr, 10) || 10000),
+        weekly_limit: Math.max(100, parseInt(weeklyLimitStr, 10) || 25000),
+      };
+
+      await buyerApi.updatePolicy('demo-buyer-001', payload);
+      setPolicy(payload);
       setToastMessage('✅ Spending policy updated successfully!');
       setTimeout(() => setToastMessage(null), 3000);
       fetchPolicy();
@@ -70,6 +88,9 @@ export default function BuyerPolicy() {
 
   const handleResetDefaults = () => {
     setPolicy({ ...policy, ...DEFAULT_POLICY });
+    setSingleLimitStr(String(DEFAULT_POLICY.single_transaction_limit));
+    setDailyLimitStr(String(DEFAULT_POLICY.daily_limit));
+    setWeeklyLimitStr(String(DEFAULT_POLICY.weekly_limit));
     setToastMessage('Restored default policy settings. Click Save to persist.');
     setTimeout(() => setToastMessage(null), 3000);
   };
@@ -92,6 +113,17 @@ export default function BuyerPolicy() {
     setPolicy({ ...policy, fallback_payments: updated });
   };
 
+  const handleNumberInput = (setter: (v: string) => void, val: string) => {
+    // Clean string input without leading zero artifacts
+    const cleaned = val.replace(/^0+(?=\d)/, '');
+    setter(cleaned);
+  };
+
+  const addAmount = (setter: (v: string) => void, currentStr: string, delta: number) => {
+    const current = parseInt(currentStr, 10) || 0;
+    setter(String(Math.max(100, current + delta)));
+  };
+
   if (!loaded) {
     return <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 100 }}><div className="spinner" /></div>;
   }
@@ -108,10 +140,10 @@ export default function BuyerPolicy() {
 
   return (
     <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h1>My Spending Policy</h1>
-          <p>Define deterministic boundaries and delegated authority for your AI Buyer Agent</p>
+          <p>Define deterministic boundaries and delegated authority for your RazorX AI Buyer Agent</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-secondary" onClick={handleResetDefaults} disabled={saving}>
@@ -129,16 +161,16 @@ export default function BuyerPolicy() {
           <div className="stat-card">
             <div className="stat-card-label">Daily Budget</div>
             <div className="stat-card-value" style={{ color: 'var(--accent-primary)' }}>₹{spending.daily_spent}</div>
-            <div className="stat-card-subtitle">₹{Math.max(0, spending.daily_remaining)} remaining of ₹{policy.daily_limit}</div>
+            <div className="stat-card-subtitle">₹{Math.max(0, spending.daily_remaining)} remaining of ₹{dailyLimitStr}</div>
           </div>
           <div className="stat-card">
             <div className="stat-card-label">Weekly Budget</div>
             <div className="stat-card-value" style={{ color: 'var(--accent-secondary)' }}>₹{spending.weekly_spent}</div>
-            <div className="stat-card-subtitle">₹{Math.max(0, spending.weekly_remaining)} remaining of ₹{policy.weekly_limit}</div>
+            <div className="stat-card-subtitle">₹{Math.max(0, spending.weekly_remaining)} remaining of ₹{weeklyLimitStr}</div>
           </div>
           <div className="stat-card">
             <div className="stat-card-label">Single Tx Limit</div>
-            <div className="stat-card-value" style={{ color: 'var(--success)' }}>₹{policy.single_transaction_limit}</div>
+            <div className="stat-card-value" style={{ color: 'var(--success)' }}>₹{singleLimitStr}</div>
             <div className="stat-card-subtitle">Hard ceiling per autonomous purchase</div>
           </div>
         </div>
@@ -150,36 +182,113 @@ export default function BuyerPolicy() {
           <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Shield size={18} style={{ color: 'var(--accent-primary)' }} /> Deterministic Spending Limits
           </span>
-          <span className="badge badge-purple">Trust Boundary</span>
+          <span className="badge badge-purple">Ed25519 Bound Gate</span>
         </div>
         <div className="policy-form">
           <div className="form-group">
-            <label className="form-label">Single Transaction Limit (₹)</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label className="form-label" style={{ margin: 0 }}>Single Transaction Limit (₹)</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[3000, 6000, 10000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ padding: '2px 8px', fontSize: 11 }}
+                    onClick={() => setSingleLimitStr(String(amt))}
+                  >
+                    ₹{amt.toLocaleString()}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '2px 8px', fontSize: 11 }}
+                  onClick={() => addAmount(setSingleLimitStr, singleLimitStr, 1000)}
+                >
+                  <Plus size={10} /> ₹1K
+                </button>
+              </div>
+            </div>
             <input
               className="form-input"
-              type="number"
-              value={policy.single_transaction_limit}
-              onChange={(e) => setPolicy({ ...policy, single_transaction_limit: parseInt(e.target.value, 10) || 0 })}
+              type="text"
+              inputMode="numeric"
+              value={singleLimitStr}
+              onChange={(e) => handleNumberInput(setSingleLimitStr, e.target.value)}
+              placeholder="e.g. 6000"
             />
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Any purchase exceeding this is blocked automatically.</span>
           </div>
+
           <div className="form-group">
-            <label className="form-label">Daily Limit (₹)</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label className="form-label" style={{ margin: 0 }}>Daily Velocity Limit (₹)</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[5000, 10000, 20000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ padding: '2px 8px', fontSize: 11 }}
+                    onClick={() => setDailyLimitStr(String(amt))}
+                  >
+                    ₹{amt.toLocaleString()}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '2px 8px', fontSize: 11 }}
+                  onClick={() => addAmount(setDailyLimitStr, dailyLimitStr, 2000)}
+                >
+                  <Plus size={10} /> ₹2K
+                </button>
+              </div>
+            </div>
             <input
               className="form-input"
-              type="number"
-              value={policy.daily_limit}
-              onChange={(e) => setPolicy({ ...policy, daily_limit: parseInt(e.target.value, 10) || 0 })}
+              type="text"
+              inputMode="numeric"
+              value={dailyLimitStr}
+              onChange={(e) => handleNumberInput(setDailyLimitStr, e.target.value)}
+              placeholder="e.g. 10000"
             />
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Maximum cumulative spending allowed per calendar day.</span>
           </div>
+
           <div className="form-group">
-            <label className="form-label">Weekly Limit (₹)</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label className="form-label" style={{ margin: 0 }}>Weekly Limit (₹)</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[15000, 25000, 50000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ padding: '2px 8px', fontSize: 11 }}
+                    onClick={() => setWeeklyLimitStr(String(amt))}
+                  >
+                    ₹{amt.toLocaleString()}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '2px 8px', fontSize: 11 }}
+                  onClick={() => addAmount(setWeeklyLimitStr, weeklyLimitStr, 5000)}
+                >
+                  <Plus size={10} /> ₹5K
+                </button>
+              </div>
+            </div>
             <input
               className="form-input"
-              type="number"
-              value={policy.weekly_limit}
-              onChange={(e) => setPolicy({ ...policy, weekly_limit: parseInt(e.target.value, 10) || 0 })}
+              type="text"
+              inputMode="numeric"
+              value={weeklyLimitStr}
+              onChange={(e) => handleNumberInput(setWeeklyLimitStr, e.target.value)}
+              placeholder="e.g. 25000"
             />
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Maximum cumulative spending allowed per week.</span>
           </div>
@@ -222,13 +331,13 @@ export default function BuyerPolicy() {
                 <span className="toggle-slider"></span>
               </label>
               <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                {policy.negotiation ? 'Agent automatically bargains with merchant AI for discounts' : 'Fixed list prices only'}
+                {policy.negotiation ? 'AI actively negotiates price discounts with merchant bots' : 'Accepts listed catalog price'}
               </span>
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Opportunity Alerts</label>
+            <label className="form-label">Opportunity Tolerance Alerts</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <label className="toggle-switch">
                 <input
@@ -239,80 +348,73 @@ export default function BuyerPolicy() {
                 <span className="toggle-slider"></span>
               </label>
               <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                {policy.opportunity_alerts ? 'Alert when a superior product exists above budget' : 'Disabled'}
+                {policy.opportunity_alerts ? 'Alerts if a significantly better option exists just above budget' : 'Strict budget cutoff only'}
               </span>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Max Opportunity Overshoot (%)</label>
-            <input
-              className="form-input"
-              type="number"
-              value={Math.round((policy.max_opportunity_overshoot || 0.2) * 100)}
-              onChange={(e) => setPolicy({ ...policy, max_opportunity_overshoot: (parseInt(e.target.value, 10) || 0) / 100 })}
-            />
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>How far above budget the AI can explore for upgrades (e.g. 20%).</span>
           </div>
         </div>
       </div>
 
-      {/* Allowed Categories & Fallback Payment Methods */}
+      {/* Allowed Categories */}
       <div className="card" style={{ marginTop: 24 }}>
         <div className="card-header">
-          <span className="card-title">Authorized Categories & Payment Fallback Chain</span>
-          <span className="badge badge-green">Permissions</span>
+          <span className="card-title">Allowed Categories</span>
+          <span className="badge badge-green">{policy.allowed_categories?.length || 0} active</span>
         </div>
-        <div className="policy-form">
-          <div className="form-group full-width">
-            <label className="form-label">Allowed Shopping Categories (Click to toggle)</label>
-            <div className="category-pills">
-              {ALL_CATEGORIES.map((cat) => {
-                const isActive = (policy.allowed_categories || []).includes(cat);
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    className={`category-pill ${isActive ? 'active' : ''}`}
-                    onClick={() => toggleCategory(cat)}
-                  >
-                    {isActive ? '✓ ' : '+ '}
-                    {cat.replace(/_/g, ' ')}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+          Transactions outside enabled categories are deterministically rejected before payment generation.
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+          {ALL_CATEGORIES.map((cat) => {
+            const isAllowed = policy.allowed_categories?.includes(cat);
+            return (
+              <button
+                key={cat}
+                type="button"
+                className={`btn ${isAllowed ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ fontSize: 13, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}
+                onClick={() => toggleCategory(cat)}
+              >
+                {isAllowed && <Check size={14} />}
+                <span>{cat.replace(/_/g, ' ').toUpperCase()}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-          <div className="form-group full-width">
-            <label className="form-label">Authorized Payment Fallback Methods (Click to toggle)</label>
-            <div className="category-pills">
-              {ALL_PAYMENT_METHODS.map((method) => {
-                const isActive = (policy.fallback_payments || []).includes(method);
-                return (
-                  <button
-                    key={method}
-                    type="button"
-                    className={`category-pill ${isActive ? 'active' : ''}`}
-                    onClick={() => togglePaymentMethod(method)}
-                  >
-                    {isActive ? '✓ ' : '+ '}
-                    {method.toUpperCase()}
-                  </button>
-                );
-              })}
-            </div>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
-              Primary method is attempted first (UPI). If declined, the recovery agent steps through authorized fallback methods in order.
-            </span>
-          </div>
+      {/* Authorized Fallback Payments */}
+      <div className="card" style={{ marginTop: 24 }}>
+        <div className="card-header">
+          <span className="card-title">Authorized Fallback Payment Methods</span>
+          <span className="badge badge-amber">{policy.fallback_payments?.length || 0} enabled</span>
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+          If primary UPI fails, RazorX will automatically retry using enabled methods in signed authorization scope.
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+          {ALL_PAYMENT_METHODS.map((method) => {
+            const isAllowed = policy.fallback_payments?.includes(method);
+            return (
+              <button
+                key={method}
+                type="button"
+                className={`btn ${isAllowed ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ fontSize: 13, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}
+                onClick={() => togglePaymentMethod(method)}
+              >
+                {isAllowed && <Check size={14} />}
+                <span>{method.toUpperCase()}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {toastMessage && (
-        <div className="toast">
+        <div className="card" style={{ position: 'fixed', bottom: 30, right: 30, background: 'var(--bg-secondary)', border: '1px solid var(--success)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', boxShadow: 'var(--shadow-glow-success)' }}>
           <CheckCircle2 size={18} style={{ color: 'var(--success)' }} />
-          <span>{toastMessage}</span>
+          <span style={{ fontWeight: 600, fontSize: 13 }}>{toastMessage}</span>
         </div>
       )}
     </div>

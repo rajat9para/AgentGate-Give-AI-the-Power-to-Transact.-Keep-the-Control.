@@ -104,8 +104,42 @@ router.get('/buyer/history', (req: Request, res: Response) => {
     return;
   }
 
-  const orders = db.getOrdersByUser(userId);
-  res.json(orders);
+  const rawOrders = db.getOrdersByUser(userId);
+  const enrichedOrders = rawOrders.map((order) => {
+    const merchant = db.getMerchant(order.merchant_id);
+    const payments = db.getPaymentsByOrder(order.id);
+    const latestPayment = payments[payments.length - 1] || null;
+
+    const items = (order.items || []).map((item) => {
+      const product = db.getProduct(item.product_id);
+      return {
+        ...item,
+        product_title: product?.title || 'Autonomous Purchase Item',
+        product_image: product?.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
+        category: product?.category || 'General',
+        attributes: product?.attributes || {},
+      };
+    });
+
+    const primaryItem = items[0];
+    const product = primaryItem ? db.getProduct(primaryItem.product_id) : null;
+
+    return {
+      ...order,
+      status: (order.status === 'paid' || order.status === 'confirmed') ? 'delivered' : order.status,
+      merchant_name: merchant?.name || 'Verified Merchant',
+      merchant_logo: merchant?.logo_url,
+      merchant_rating: merchant?.rating || 4.8,
+      product_title: primaryItem?.product_title || product?.title || 'Autonomous Item',
+      product_image: primaryItem?.product_image || product?.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
+      items,
+      payment: latestPayment,
+      payment_method: latestPayment?.method || 'card',
+      savings: order.negotiated_amount ? Math.max(0, order.total_amount - order.negotiated_amount) : 0,
+    };
+  });
+
+  res.json(enrichedOrders.reverse());
 });
 
 // ============================================================
