@@ -52,42 +52,51 @@ export async function generateMerchantResponse(
     return 'Sorry, I could not find the requested product information.';
   }
 
-  if (!config.gemini.apiKey) {
+  if (!config.groq.apiKey) {
     // Fallback response
     return `Thank you for your interest in ${product.title}! This product is currently priced at ₹${product.price} with ${product.stock} units in stock. Delivery typically takes ${product.delivery_days} days. Would you like to proceed?`;
   }
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${config.gemini.model}:generateContent?key=${config.gemini.apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.groq.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: config.groq.model || 'openai/gpt-oss-120b',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a helpful AI merchant agent for ${merchant.name}. Respond helpfully and concisely. Be professional and encouraging. Keep response under 100 words.`,
+          },
+          {
             role: 'user',
-            parts: [{
-              text: `You are a helpful AI merchant agent for ${merchant.name}. 
-Product: ${product.title} - ${product.description}
+            content: `Product: ${product.title} - ${product.description}
 Price: ₹${product.price}
 Rating: ${product.rating}/5
 Stock: ${product.stock} units
 Delivery: ${product.delivery_days} days
 Attributes: ${JSON.stringify(product.attributes)}
 
-Customer query: "${buyerQuery}"
+Customer query: "${buyerQuery}"`,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 200,
+      }),
+    });
 
-Respond helpfully and concisely. Be professional and encouraging. Keep response under 100 words.`
-            }]
-          }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 200 },
-        }),
-      }
-    );
+    if (!response.ok) {
+      return `${product.title} is available at ₹${product.price}. ${product.stock} units in stock.`;
+    }
 
     const data: any = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 
-      `${product.title} is an excellent choice at ₹${product.price}. Would you like to proceed?`;
+    return (
+      data.choices?.[0]?.message?.content ||
+      `${product.title} is an excellent choice at ₹${product.price}. Would you like to proceed?`
+    );
   } catch {
     return `${product.title} is available at ₹${product.price}. ${product.stock} units in stock.`;
   }

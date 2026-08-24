@@ -461,9 +461,9 @@ router.get('/ready', async (_req: Request, res: Response) => {
         configured: config.razorpay.isConfigured,
         mode: config.demoMode ? 'simulated-test-mode' : 'live-api',
       },
-      gemini_ai: {
-        configured: config.gemini.isConfigured,
-        model: config.gemini.model,
+      groq_ai: {
+        configured: config.groq.isConfigured,
+        model: config.groq.model,
       },
     },
   });

@@ -503,10 +503,10 @@ async function runSecurityTestSuite() {
 
   if (totalPassed === results.length) {
     console.log('🎉 ALL 21 CRYPTOGRAPHIC & SECURITY INVARIANTS RIGOROUSLY VERIFIED!\n');
-    process.exit(0);
+    setTimeout(() => process.exit(0), 50);
   } else {
     console.error('❌ SOME SECURITY TESTS FAILED!\n');
-    process.exit(1);
+    setTimeout(() => process.exit(1), 50);
   }
 }
 

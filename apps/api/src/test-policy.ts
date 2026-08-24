@@ -181,14 +181,14 @@ async function runPolicyTests() {
 
   if (totalPassed === results.length) {
     console.log('🎉 ALL POLICY ENGINE INVARIANTS PROVEN DETERMINISTICALLY!\n');
-    process.exit(0);
+    setTimeout(() => process.exit(0), 50);
   } else {
     console.error('❌ SOME TESTS FAILED!\n');
-    process.exit(1);
+    setTimeout(() => process.exit(1), 50);
   }
 }
 
 runPolicyTests().catch(err => {
   console.error('Fatal test error:', err);
-  process.exit(1);
+  setTimeout(() => process.exit(1), 50);
 });

@@ -58,7 +58,7 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
 | Service | Responsibility | Required Secrets (Backend Only) | Browser Safe (Frontend) |
 | :--- | :--- | :--- | :--- |
 | **Vercel** | SPA Frontend Hosting | *None* | `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_CLOUDINARY_CLOUD_NAME` |
-| **Render** | API & Execution Gateway | `SUPABASE_SERVICE_ROLE_KEY`, `RAZORPAY_KEY_SECRET`, `CLOUDINARY_API_SECRET`, `GEMINI_API_KEY`, `AGENTGATE_SIGNING_KEY` | `PORT`, `FRONTEND_URL` |
+| **Render** | API & Execution Gateway | `SUPABASE_SERVICE_ROLE_KEY`, `RAZORPAY_KEY_SECRET`, `CLOUDINARY_API_SECRET`, `GROQ_API_KEY`, `AGENTGATE_SIGNING_KEY` | `PORT`, `FRONTEND_URL` |
 | **Supabase** | Relational Database & RLS | PostgreSQL connection / Service Role | Anon Public Key |
 | **Cloudinary** | Receipts, Images, Proof Files | `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | `CLOUDINARY_CLOUD_NAME` |
 | **Razorpay** | Payment Gateway & Webhooks | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | `RAZORPAY_KEY_ID` (Public) |
@@ -151,9 +151,9 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-   # Gemini AI
-   GEMINI_API_KEY=your_gemini_api_key
-   GEMINI_MODEL=gemini-2.0-flash
+   # Groq AI (Ultra-fast LLM)
+   GROQ_API_KEY=your_groq_api_key
+   GROQ_MODEL=openai/gpt-oss-120b
 
    # Razorpay
    RAZORPAY_KEY_ID=rzp_test_your_key_id

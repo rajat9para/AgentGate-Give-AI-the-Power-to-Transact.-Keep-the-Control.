@@ -1,5 +1,5 @@
 // ============================================================
-// AgentGate — Intent Parser (Gemini AI)
+// AgentGate — Intent Parser (Groq AI / LLaMA 3.3)
 // Parses natural language into structured purchase intent
 // ============================================================
 
@@ -24,51 +24,63 @@ Return ONLY valid JSON with this exact schema:
 }
 
 Rules:
-- Extract exact numbers for prices (e.g., "under 6000" → max_price: 6000)
-- If no price mentioned, set max_price to 10000 as default
-- Category must be one of the listed options
-- Preferences are nice-to-have, hard_constraints are must-have
-- Always set purchase to true unless user is just browsing`;
+- Extract numerical amounts as numbers (e.g., "under 6000" → max_price: 6000, "for ₹50,000" → max_price: 50000, "budget 15000" → max_price: 15000, "around 4000" → max_price: 4000). Remove commas and currency symbols.
+- If no price or budget is mentioned at all, set max_price to 10000 as default.
+- Category must be one of the listed options:
+  * watches, smartwatches, earbuds, headphones, speakers, chargers, electronics → category: "electronics"
+  * running shoes, sneakers, trainers, footwear → category: "running_shoes"
+  * apparel, hoodies, shirts, backpacks, clothing → category: "clothing"
+  * fitness bands, yoga mats, resistance bands, gym → category: "fitness"
+  * protein, whey, supplements, nutrition → category: "nutrition"
+  * desk lamps, laptop stands, stationery → category: "student_essentials"
+- Preferences are nice-to-have, hard_constraints are must-have.
+- Always set purchase to true unless user is just browsing.`;
 
 /**
- * Parse a natural language message into a structured intent using Gemini.
+ * Parse a natural language message into a structured intent using Groq LLaMA 3.3.
  */
 export async function parseIntent(userMessage: string): Promise<StructuredIntent> {
   // If no API key, use rule-based fallback
-  if (!config.gemini.apiKey) {
+  if (!config.groq.apiKey) {
     return parseIntentFallback(userMessage);
   }
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${config.gemini.model}:generateContent?key=${config.gemini.apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            { role: 'user', parts: [{ text: `${INTENT_SYSTEM_PROMPT}\n\nUser message: "${userMessage}"` }] }
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            responseMimeType: 'application/json',
-          },
-        }),
-      }
-    );
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.groq.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: config.groq.model || 'openai/gpt-oss-120b',
+        messages: [
+          { role: 'system', content: INTENT_SYSTEM_PROMPT },
+          { role: 'user', content: `Extract purchase intent from user request: "${userMessage}"` },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.1,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.warn(`[IntentParser] Groq HTTP ${response.status}: ${errText}, using fallback`);
+      return parseIntentFallback(userMessage);
+    }
 
     const data: any = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = data.choices?.[0]?.message?.content;
 
     if (!text) {
-      console.warn('[IntentParser] No response from Gemini, using fallback');
+      console.warn('[IntentParser] No content in Groq response, using fallback');
       return parseIntentFallback(userMessage);
     }
 
     const parsed = JSON.parse(text);
     return validateIntent(parsed);
   } catch (error) {
-    console.error('[IntentParser] Gemini error:', error);
+    console.error('[IntentParser] Groq error:', error);
     return parseIntentFallback(userMessage);
   }
 }

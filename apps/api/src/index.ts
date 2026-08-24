@@ -153,7 +153,7 @@ const server = app.listen(config.port, () => {
 ║   Supabase:     ${config.supabase.isConfigured ? 'Configured (PostgreSQL)' : 'In-Memory State'}                  ║
 ║   Cloudinary:   ${config.cloudinary.isConfigured ? 'Configured (Cloud Storage)' : 'In-Memory Mock'}                  ║
 ║   Razorpay:     ${config.demoMode ? 'Simulated (Test Mode)' : (config.razorpay.isConfigured ? 'Configured (Live)' : 'Unconfigured')}            ║
-║   Gemini AI:    ${config.gemini.isConfigured ? 'Configured (Live)' : 'Regex / Fallback Parser'}             ║
+║   Groq AI:      ${config.groq.isConfigured ? 'Configured (Live LLaMA 3.3)' : 'Regex / Fallback Parser'}             ║
 ║                                                                  ║
 ║   Service URL:  http://localhost:${config.port}                                ║
 ║                                                                  ║

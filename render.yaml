@@ -31,11 +31,11 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
 
-      # AI Model Provider (Gemini 2.0 Flash)
-      - key: GEMINI_API_KEY
+      # AI Model Provider (Groq / LLaMA 3.3)
+      - key: GROQ_API_KEY
         sync: false
-      - key: GEMINI_MODEL
-        value: gemini-2.0-flash
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
 
       # Razorpay Payment Gateway (Test or Production Mode)
       - key: RAZORPAY_KEY_ID

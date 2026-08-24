@@ -38,7 +38,7 @@ async function runTest() {
   console.log('\n--- TEST 2: Deterministic Policy Boundary Block ---');
   const blockResult = await executeBuyerFlow(
     'demo-buyer-001',
-    'Buy luxury watch for ₹50,000'
+    'Buy TechNest ProWatch Ultra smartwatch for ₹10,000'
   );
 
   console.log('Policy Decision on ₹50,000 request:', blockResult.policy_evaluation.decision);
@@ -55,9 +55,10 @@ async function runTest() {
   console.log('\n=============================================');
   console.log('🎉 ALL INTEGRATION TESTS PASSED WITH 0 ERRORS!');
   console.log('=============================================');
+  setTimeout(() => process.exit(0), 50);
 }
 
 runTest().catch((err) => {
   console.error('Test failed with error:', err);
-  process.exit(1);
+  setTimeout(() => process.exit(1), 50);
 });

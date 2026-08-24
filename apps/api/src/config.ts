@@ -27,7 +27,7 @@ export interface AgentGateConfig {
     isConfigured: boolean;
   };
 
-  gemini: {
+  groq: {
     apiKey: string;
     model: string;
     isConfigured: boolean;
@@ -52,7 +52,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME || '';
 const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || '';
 const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || '';
-const geminiApiKey = process.env.GEMINI_API_KEY || '';
+const groqApiKey = process.env.GROQ_API_KEY || '';
 const razorpayKeyId = process.env.RAZORPAY_KEY_ID || '';
 const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || '';
 
@@ -78,10 +78,10 @@ export const config: AgentGateConfig = {
     isConfigured: Boolean(cloudinaryCloudName && cloudinaryApiKey && cloudinaryApiSecret),
   },
 
-  gemini: {
-    apiKey: geminiApiKey,
-    model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
-    isConfigured: Boolean(geminiApiKey),
+  groq: {
+    apiKey: groqApiKey,
+    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+    isConfigured: Boolean(groqApiKey),
   },
 
   razorpay: {
@@ -114,8 +114,8 @@ export function validateStartupConfig(): { valid: boolean; warnings: string[]; e
       if (!config.razorpay.isConfigured) {
         errors.push('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are required in production mode');
       }
-      if (!config.gemini.isConfigured) {
-        warnings.push('GEMINI_API_KEY is not set. Intent parser will use deterministic regex fallback');
+      if (!config.groq.isConfigured) {
+        warnings.push('GROQ_API_KEY is not set. Intent parser will use deterministic regex fallback');
       }
     }
   }
