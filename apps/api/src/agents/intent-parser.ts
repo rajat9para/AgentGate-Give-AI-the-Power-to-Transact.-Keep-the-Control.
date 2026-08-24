@@ -142,10 +142,10 @@ function checkFastPathGreetingOrHelp(message: string): StructuredIntent | null {
   }
 
   // 3. Policy & Budget Queries (When user asks about policy/limits/rules, not budget products)
-  const isPolicyKeyword = /\b(limits?|polic(y|ies)|spending|allowance|velocity|allowed\s+categories|categories\s+are\s+allowed)\b/i.test(lower);
-  const isBudgetInquiry = /\b(spend\s+\d+|can\s+i\s+spend|how\s+much\s+can\s+i|remaining\s+budget)\b/i.test(lower) || (/\bbudget\b/i.test(lower) && /\b(my|what|rules|remaining|limit|how\s+much|check|left|show)\b/i.test(lower));
+  const isPolicyKeyword = /\b(spending\s+limits?|policy\s+limits?|user\s+polic(y|ies)|daily\s+allowance|velocity\s+limit|allowed\s+categories|categories\s+are\s+allowed|what\s+categories\s+are\s+allowed|which\s+categories\s+can\s+i)\b/i.test(lower);
+  const isBudgetInquiry = /\b(how\s+much\s+can\s+i\s+spend|remaining\s+budget|my\s+budget\s+limit|check\s+my\s+budget|what\s+is\s+my\s+budget|budget\s+left|budget\s+remaining)\b/i.test(lower);
 
-  if (!hasSpecificProductKeywords && (isPolicyKeyword || isBudgetInquiry)) {
+  if (!hasSpecificProductKeywords && !/\b(essential|essentials|product|products|gear|items?|goods?|under|below)\b/i.test(lower) && (isPolicyKeyword || isBudgetInquiry)) {
     return {
       intent_type: 'policy_query',
       is_shopping_intent: false,
@@ -159,25 +159,14 @@ function checkFastPathGreetingOrHelp(message: string): StructuredIntent | null {
   }
 
   // 4. Help, Architecture & FAQ Doubts (Questions about system mechanics, security, negotiation, merchants, etc.)
-  const isQuestionIntro = /^(how\s+(does|do|can|is|fast)|what\s+(is|are|happens|can)|why\s+(does|is)|who\s+(is|are)|explain|is\s+my|is\s+there|can\s+i\s+(speak|print|change|disable|restore)|tell\s+me\s+about)/i.test(lower);
-  const isArchitectureDoubt = /\b(ed25519|razorx|merkle|audit\s+chain|sha-256|replay|nonce|invoice|gst|receipt|tax|pdf|refund|timeout|groq|public\s+key|private\s+key|recovery|upsell|non-repudiation|architecture|capabilities|security|safe|stored|merchants?\s+(in|are|network|onboard)|declines?\s+discount|rejects?\s+an?\s+offer|difference\s+between)\b/i.test(lower);
+  const isQuestionIntro = /^(how\s+|what\s+|why\s+|who\s+|which\s+|explain|is\s+|are\s+|can\s+|could\s+|will\s+|would\s+|does\s+|do\s+|tell\s+me\s+about)/i.test(lower);
+  const isArchitectureDoubt = /\b(ed25519|razorx|merkle|audit\s+chain|sha-256|replay|nonce|invoice|gst|receipt|tax|pdf|refund|timeout|groq|public\s+key|private\s+key|recovery|upsell|non-repudiation|architecture|capabilities|security|safe|stored|merchants?\s+(in|are|network|onboard)|declines?\s+discount|rejects?\s+an?\s+offer|difference\s+between|discount\s+percentage|calculated|calculate|without\s+my\s+permission|permission)\b/i.test(lower);
 
-  if (isQuestionIntro && (isArchitectureDoubt || !hasSpecificProductKeywords) && !/\b(discount|deals?|sales?|offers?)\b/i.test(lower)) {
+  if (isQuestionIntro && (isArchitectureDoubt || !hasSpecificProductKeywords)) {
     return {
       intent_type: 'help',
       is_shopping_intent: false,
-      conversational_reply: "🛡️ **RazorX Autonomous Commerce Architecture & Protections:**\n\n1. **Autonomous Product Discovery**: Evaluates catalogs across 4 verified merchant networks (RunPro, TechNest, CampusMart, FitFuel).\n2. **AI-to-AI Price Negotiation**: Executes multi-round automated bidding with merchant agents to secure discounts.\n3. **Deterministic Policy Gate**: Enforces single transaction limits (₹6,000 default), daily/weekly velocity limits, and whitelisted categories before issuing authorizations.\n4. **Ed25519 Cryptographic Signatures**: Issues cryptographically signed transaction tokens (RFC 8032) bound to amount, merchant ID, and nonce.\n5. **Razorpay Standard Checkout & Auto-Recovery**: Creates real Razorpay orders and recovers simulated UPI timeouts via authorized Card fallback.\n6. **SHA-256 Merkle Audit Chain**: Every transaction and decision is permanently linked in a tamper-evident cryptographic hash chain.\n\nTell me what you'd like to explore or purchase today!",
-      category: 'running_shoes',
-      max_price: 10000,
-      preferences: [],
-      hard_constraints: [],
-      purchase: false,
-    };
-  } else if (isQuestionIntro && isArchitectureDoubt) {
-    return {
-      intent_type: 'help',
-      is_shopping_intent: false,
-      conversational_reply: "🛡️ **RazorX Autonomous Commerce Architecture & Protections:**\n\n1. **Autonomous Product Discovery**: Evaluates catalogs across 4 verified merchant networks (RunPro, TechNest, CampusMart, FitFuel).\n2. **AI-to-AI Price Negotiation**: Executes multi-round automated bidding with merchant agents to secure discounts.\n3. **Deterministic Policy Gate**: Enforces single transaction limits (₹6,000 default), daily/weekly velocity limits, and whitelisted categories before issuing authorizations.\n4. **Ed25519 Cryptographic Signatures**: Issues cryptographically signed transaction tokens (RFC 8032) bound to amount, merchant ID, and nonce.\n5. **Razorpay Standard Checkout & Auto-Recovery**: Creates real Razorpay orders and recovers simulated UPI timeouts via authorized Card fallback.\n6. **SHA-256 Merkle Audit Chain**: Every transaction and decision is permanently linked in a tamper-evident cryptographic hash chain.\n\nTell me what you'd like to explore or purchase today!",
+      conversational_reply: "🛡️ **RazorX Autonomous Commerce Architecture & Protections:**\n\n1. **Autonomous Product Discovery**: Evaluates catalogs across 4 verified merchant networks (RunPro, TechNest, CampusMart, FitFuel).\n2. **AI-to-AI Price Negotiation**: Executes multi-round automated bidding with merchant agents to secure discounts based on merchant policy margins and stock levels.\n3. **Deterministic Policy Gate**: Enforces single transaction limits (₹6,000 default), daily/weekly velocity limits, and whitelisted categories before issuing authorizations.\n4. **Ed25519 Cryptographic Signatures**: Issues cryptographically signed transaction tokens (RFC 8032) bound to amount, merchant ID, and nonce.\n5. **Razorpay Standard Checkout & Auto-Recovery**: Creates real Razorpay orders and recovers simulated UPI timeouts via authorized Card fallback.\n6. **SHA-256 Merkle Audit Chain**: Every transaction and decision is permanently linked in a tamper-evident cryptographic hash chain.\n\nTell me what you'd like to explore or purchase today!",
       category: 'running_shoes',
       max_price: 10000,
       preferences: [],
@@ -250,28 +239,46 @@ function parseIntentFallback(message: string): StructuredIntent {
   } else if (lower.includes('power bank') || lower.includes('powerbank')) {
     category = 'electronics';
     subcategory = 'power_bank';
-  } else if (lower.includes('yoga') || lower.includes('mat') || lower.includes('fitness') || lower.includes('gym') || lower.includes('workout') || lower.includes('exercise')) {
+  } else if (lower.includes('yoga') || lower.includes('mat')) {
     category = 'fitness';
     subcategory = 'yoga_mat';
-  } else if (lower.includes('protein') || lower.includes('whey') || lower.includes('nutrition') || lower.includes('supplement') || lower.includes('shake') || lower.includes('isolate') || lower.includes('powder')) {
+  } else if (lower.includes('fitness') || lower.includes('gym') || lower.includes('workout') || lower.includes('exercise')) {
+    category = 'fitness';
+    if (lower.includes('band')) subcategory = 'resistance_bands';
+    else if (lower.includes('glove')) subcategory = 'gloves';
+    else if (lower.includes('mat') || lower.includes('yoga')) subcategory = 'yoga_mat';
+  } else if (lower.includes('protein') || lower.includes('whey') || lower.includes('nutrition') || lower.includes('supplement') || lower.includes('isolate') || lower.includes('powder')) {
     category = 'nutrition';
     subcategory = 'protein';
-  } else if (lower.includes('backpack') || lower.includes('bag') || lower.includes('clothing') || lower.includes('shirt') || lower.includes('tshirt') || lower.includes('short') || lower.includes('sock') || lower.includes('activewear')) {
+  } else if (lower.includes('backpack') || lower.includes('bag')) {
     category = 'clothing';
     subcategory = 'backpack';
-  } else if (lower.includes('student') || lower.includes('essential') || lower.includes('college') || lower.includes('lamp') || lower.includes('desk') || lower.includes('notebook') || lower.includes('pen') || lower.includes('stationery')) {
+  } else if (lower.includes('clothing') || lower.includes('shirt') || lower.includes('tshirt') || lower.includes('short') || lower.includes('sock') || lower.includes('activewear')) {
+    category = 'clothing';
+    if (lower.includes('backpack') || lower.includes('bag')) subcategory = 'backpack';
+    else if (lower.includes('sock')) subcategory = 'socks';
+  } else if (lower.includes('student') || lower.includes('essential') || lower.includes('college')) {
+    category = 'student_essentials';
+    if (lower.includes('lamp') || lower.includes('desk')) subcategory = 'lamp';
+    else if (lower.includes('notebook') || lower.includes('stationery') || lower.includes('pen')) subcategory = 'stationery';
+    else if (lower.includes('stand') || lower.includes('laptop')) subcategory = 'laptop_stand';
+  } else if (lower.includes('lamp') || lower.includes('desk')) {
     category = 'student_essentials';
     subcategory = 'lamp';
+  } else if (lower.includes('notebook') || lower.includes('stationery') || lower.includes('book')) {
+    category = 'student_essentials';
+    subcategory = 'stationery';
   } else if (lower.includes('stand') || lower.includes('laptop')) {
     category = 'student_essentials';
     subcategory = 'laptop_stand';
-  } else if (lower.includes('accessory') || lower.includes('accessories') || lower.includes('shaker') || lower.includes('bottle') || lower.includes('strap') || lower.includes('band') || lower.includes('block')) {
+  } else if (lower.includes('accessory') || lower.includes('accessories') || lower.includes('shaker') || lower.includes('bottle')) {
     category = 'accessories';
-    subcategory = 'bottle';
+    if (lower.includes('bottle') || lower.includes('flask')) subcategory = 'hydration';
+    else if (lower.includes('shaker')) subcategory = 'shaker';
+    else if (lower.includes('sock')) subcategory = 'socks';
   } else if (lower.includes('all') || lower.includes('product') || lower.includes('item') || lower.includes('catalog') || lower.includes('technest') || lower.includes('runpro') || lower.includes('campus') || lower.includes('fitfuel') || lower.includes('budget') || lower.includes('sport') || lower.includes('discount') || lower.includes('deal') || lower.includes('sale') || lower.includes('offer') || lower.includes('best') || lower.includes('cheap')) {
     category = 'running_shoes';
   } else if (hasPurchaseVerb || hasBrowseVerb) {
-    // If user explicitly said buy/purchase/order but category was exotic (e.g. graphics card, drone, car, sofa):
     category = 'electronics';
   }
 
