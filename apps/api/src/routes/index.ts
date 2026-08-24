@@ -142,8 +142,38 @@ router.get('/merchants/:id/catalog', (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/merchant/policy?merchant_id=xxx
+ * GET /api/merchants/:id/metrics or GET /api/merchant/metrics?merchant_id=xxx
  */
+router.get('/merchants/:id/metrics', (req: Request, res: Response) => {
+  const merchantId = String(req.params.id);
+  const metrics = getMerchantDashboardMetrics(merchantId);
+  res.json(metrics);
+});
+
+router.get('/merchant/metrics', (req: Request, res: Response) => {
+  const merchantId = req.query.merchant_id ? String(req.query.merchant_id) : '';
+  if (!merchantId) {
+    res.status(400).json({ error: 'merchant_id query parameter required' });
+    return;
+  }
+
+  const metrics = getMerchantDashboardMetrics(merchantId);
+  res.json(metrics);
+});
+
+/**
+ * GET /api/merchants/:id/policy or GET /api/merchant/policy?merchant_id=xxx
+ */
+router.get('/merchants/:id/policy', (req: Request, res: Response) => {
+  const merchantId = String(req.params.id);
+  const policy = db.getMerchantPolicy(merchantId);
+  if (!policy) {
+    res.status(404).json({ error: 'No policy found for merchant' });
+    return;
+  }
+  res.json(policy);
+});
+
 router.get('/merchant/policy', (req: Request, res: Response) => {
   const merchantId = req.query.merchant_id ? String(req.query.merchant_id) : '';
   if (!merchantId) {
@@ -161,8 +191,18 @@ router.get('/merchant/policy', (req: Request, res: Response) => {
 });
 
 /**
- * PUT /api/merchant/policy
+ * PUT /api/merchants/:id/policy or PUT /api/merchant/policy
  */
+router.put('/merchants/:id/policy', (req: Request, res: Response) => {
+  const merchantId = String(req.params.id);
+  const updated = db.updateMerchantPolicy(merchantId, req.body);
+  if (!updated) {
+    res.status(404).json({ error: 'Policy not found' });
+    return;
+  }
+  res.json(updated);
+});
+
 router.put('/merchant/policy', (req: Request, res: Response) => {
   const { merchant_id, ...updates } = req.body;
   if (!merchant_id) {
@@ -177,20 +217,6 @@ router.put('/merchant/policy', (req: Request, res: Response) => {
   }
 
   res.json(updated);
-});
-
-/**
- * GET /api/merchant/metrics?merchant_id=xxx
- */
-router.get('/merchant/metrics', (req: Request, res: Response) => {
-  const merchantId = req.query.merchant_id ? String(req.query.merchant_id) : '';
-  if (!merchantId) {
-    res.status(400).json({ error: 'merchant_id query parameter required' });
-    return;
-  }
-
-  const metrics = getMerchantDashboardMetrics(merchantId);
-  res.json(metrics);
 });
 
 /**

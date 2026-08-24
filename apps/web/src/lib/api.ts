@@ -2,11 +2,28 @@
 // AgentGate — Frontend API Client (Production-Ready)
 // ============================================================
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+function getApiBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  let base = envUrl || 'https://razorx-give-ai-the-power-to-transact.onrender.com/api';
+  
+  // Remove trailing slashes
+  base = base.replace(/\/+$/, '');
+  
+  // Auto-append /api if omitted
+  if (!base.endsWith('/api')) {
+    base = `${base}/api`;
+  }
+  return base;
+}
+
+const API_BASE = getApiBaseUrl();
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const url = `${API_BASE}${cleanPath}`;
+  
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
+    const res = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -23,7 +40,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   } catch (err: any) {
     if (err.name === 'TypeError' && err.message.includes('fetch')) {
       throw new Error(
-        `Unable to reach AgentGate Backend API at ${API_BASE}. Ensure the Render backend service is running.`
+        `Unable to reach Backend API at ${url}. Please verify connection to Render backend.`
       );
     }
     throw err;

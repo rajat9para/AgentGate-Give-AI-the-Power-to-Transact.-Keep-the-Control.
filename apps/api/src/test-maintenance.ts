@@ -36,10 +36,10 @@ async function runMaintenanceVerification() {
   console.log(`✅ PASS: Maintenance Status Operational (Keep-Alive total: ${status.keepAlive.totalPings}, Interval: ${status.keepAlive.intervalMs / 1000}s)`);
 
   console.log('\n🎉 ALL CLOUDINARY & MAINTENANCE SERVICES VERIFIED!\n');
-  setTimeout(() => process.exit(0), 50);
+  process.exitCode = 0;
 }
 
 runMaintenanceVerification().catch(err => {
   console.error('Maintenance verification failed:', err);
-  setTimeout(() => process.exit(1), 50);
+  process.exitCode = 1;
 });
