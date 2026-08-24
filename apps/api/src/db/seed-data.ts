@@ -1,6 +1,6 @@
 // ============================================================
 // RazorX — Seed Data: 4 Verified Merchants, 26 Realistic Products
-// With High-Definition Cloud / CDN Product Photography
+// With Curated, Unique, High-Definition Cloud Product Photography
 // ============================================================
 
 import type { Merchant, MerchantPolicy, Product } from '../types.js';
@@ -12,7 +12,7 @@ export const seedMerchants: Merchant[] = [
     name: 'RunPro Sports',
     slug: 'runpro-sports',
     description: 'Premium running and fitness gear for serious athletes',
-    logo_url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&auto=format&fit=crop&q=80',
+    logo_url: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=120&auto=format&fit=crop&q=80',
     rating: 4.8,
     reliability_score: 0.96,
     categories: ['running_shoes', 'fitness', 'accessories'],
@@ -23,7 +23,7 @@ export const seedMerchants: Merchant[] = [
     name: 'TechNest Electronics',
     slug: 'technest',
     description: 'Smart electronics, audio gear, and gadgets at competitive prices',
-    logo_url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=120&auto=format&fit=crop&q=80',
+    logo_url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=120&auto=format&fit=crop&q=80',
     rating: 4.7,
     reliability_score: 0.94,
     categories: ['electronics', 'accessories'],
@@ -34,7 +34,7 @@ export const seedMerchants: Merchant[] = [
     name: 'CampusMart Essentials',
     slug: 'campusmart',
     description: 'Everything a student & professional needs — affordable, reliable, fast delivery',
-    logo_url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=120&auto=format&fit=crop&q=80',
+    logo_url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=120&auto=format&fit=crop&q=80',
     rating: 4.6,
     reliability_score: 0.91,
     categories: ['student_essentials', 'electronics', 'clothing', 'running_shoes'],
@@ -45,7 +45,7 @@ export const seedMerchants: Merchant[] = [
     name: 'FitFuel Nutrition & Gear',
     slug: 'fitfuel',
     description: 'Fitness accessories, premium apparel, and pure nutrition for your health goals',
-    logo_url: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=120&auto=format&fit=crop&q=80',
+    logo_url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=120&auto=format&fit=crop&q=80',
     rating: 4.8,
     reliability_score: 0.95,
     categories: ['fitness', 'nutrition', 'accessories', 'running_shoes'],
@@ -105,7 +105,7 @@ export const seedMerchantPolicies: MerchantPolicy[] = [
   },
 ];
 
-// ---- Products Catalog with CDN Images ----
+// ---- Products Catalog with Unique High-Res Photography ----
 export const seedProducts: Product[] = [
   // ============ RunPro Sports ============
   {
@@ -121,7 +121,9 @@ export const seedProducts: Product[] = [
       { id: 'v-rp001-9w', product_id: 'prod-rp-001', name: 'Size 9 - White', sku: 'RP-VX-9-WHT', price: 5799, stock: 8, attributes: { size: '9', color: 'white' } },
     ],
     attributes: { brand: 'RunPro', type: 'daily_trainer', cushioning: 'responsive', weight: '280g', drop: '8mm' },
-    delivery_days: 3, rating: 4.7, image_url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.7,
+    image_url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -135,7 +137,9 @@ export const seedProducts: Product[] = [
       { id: 'v-rp002-10', product_id: 'prod-rp-002', name: 'Size 10 - Neon Green', sku: 'RP-SP-10-NGR', price: 8999, stock: 6, attributes: { size: '10', color: 'neon_green' } },
     ],
     attributes: { brand: 'RunPro', type: 'racing', cushioning: 'carbon_plate', weight: '195g', drop: '6mm' },
-    delivery_days: 2, rating: 4.9, image_url: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.9,
+    image_url: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -151,7 +155,9 @@ export const seedProducts: Product[] = [
       { id: 'v-rp003-10', product_id: 'prod-rp-003', name: 'Size 10 - Black', sku: 'RP-CS-10-BLK', price: 4999, stock: 10, attributes: { size: '10', color: 'black' } },
     ],
     attributes: { brand: 'RunPro', type: 'daily_trainer', cushioning: 'cloud_foam', weight: '310g', drop: '10mm' },
-    delivery_days: 3, rating: 4.6, image_url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.6,
+    image_url: 'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -165,7 +171,9 @@ export const seedProducts: Product[] = [
       { id: 'v-rp004-10', product_id: 'prod-rp-004', name: 'Size 10 - Black/Orange', sku: 'RP-TB-10-BOR', price: 6999, stock: 8, attributes: { size: '10', color: 'black_orange' } },
     ],
     attributes: { brand: 'RunPro', type: 'trail', cushioning: 'rock_plate', weight: '340g', drop: '6mm', waterproof: 'yes' },
-    delivery_days: 4, rating: 4.8, image_url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 4, rating: 4.8,
+    image_url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -180,7 +188,9 @@ export const seedProducts: Product[] = [
       { id: 'v-rp005-10', product_id: 'prod-rp-005', name: 'Size 10 - Blue', sku: 'RP-FL-10-BLU', price: 2999, stock: 25, attributes: { size: '10', color: 'blue' } },
     ],
     attributes: { brand: 'RunPro', type: 'daily_trainer', cushioning: 'eva_foam', weight: '260g', drop: '8mm' },
-    delivery_days: 2, rating: 4.3, image_url: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.3,
+    image_url: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -191,7 +201,9 @@ export const seedProducts: Product[] = [
     price: 799, original_price: 999, currency: 'INR', stock: 200,
     variants: [],
     attributes: { brand: 'RunPro', material: 'nylon_blend', compression: 'medium' },
-    delivery_days: 2, rating: 4.5, image_url: 'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.5,
+    image_url: 'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -202,7 +214,9 @@ export const seedProducts: Product[] = [
     price: 599, original_price: 699, currency: 'INR', stock: 150,
     variants: [],
     attributes: { brand: 'RunPro', capacity: '500ml', material: 'BPA-free silicone' },
-    delivery_days: 2, rating: 4.4, image_url: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.4,
+    image_url: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
 
@@ -218,7 +232,9 @@ export const seedProducts: Product[] = [
       { id: 'v-tn001-wht', product_id: 'prod-tn-001', name: 'Glacier White', sku: 'TN-ABP-WHT', price: 4499, stock: 35, attributes: { color: 'white' } },
     ],
     attributes: { brand: 'TechNest', type: 'TWS', anc: 'yes', battery: '36hrs', driver: '11mm' },
-    delivery_days: 2, rating: 4.8, image_url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.8,
+    image_url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -232,7 +248,9 @@ export const seedProducts: Product[] = [
       { id: 'v-tn002-grn', product_id: 'prod-tn-002', name: 'Olive Strap', sku: 'TN-SBP-GRN', price: 2999, stock: 20, attributes: { color: 'green' } },
     ],
     attributes: { brand: 'TechNest', type: 'fitness_tracker', heart_rate: 'yes', spo2: 'yes', battery: '14days' },
-    delivery_days: 2, rating: 4.5, image_url: 'https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.5,
+    image_url: 'https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -243,7 +261,9 @@ export const seedProducts: Product[] = [
     price: 1999, original_price: 2499, currency: 'INR', stock: 120,
     variants: [],
     attributes: { brand: 'TechNest', capacity: '20000mAh', fast_charge: '65W', ports: 'USB-C, USB-A' },
-    delivery_days: 3, rating: 4.6, image_url: 'https://images.unsplash.com/photo-1609592424368-243003023027?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.6,
+    image_url: 'https://images.unsplash.com/photo-1622445262464-84b1456045b6?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -257,7 +277,9 @@ export const seedProducts: Product[] = [
       { id: 'v-tn004-red', product_id: 'prod-tn-004', name: 'Crimson Red', sku: 'TN-MSB-RED', price: 3499, stock: 15, attributes: { color: 'red' } },
     ],
     attributes: { brand: 'TechNest', type: 'portable_speaker', waterproof: 'IPX7', battery: '16hrs', bluetooth: '5.3' },
-    delivery_days: 3, rating: 4.4, image_url: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.4,
+    image_url: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -268,7 +290,9 @@ export const seedProducts: Product[] = [
     price: 1299, original_price: 1599, currency: 'INR', stock: 200,
     variants: [],
     attributes: { brand: 'TechNest', type: 'charger', wattage: '45W', technology: 'GaN', ports: 'USB-C + USB-A' },
-    delivery_days: 2, rating: 4.7, image_url: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.7,
+    image_url: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -282,7 +306,9 @@ export const seedProducts: Product[] = [
       { id: 'v-tn006-slv', product_id: 'prod-tn-006', name: 'Silver Steel', sku: 'TN-PWU-SLV', price: 8499, stock: 15, attributes: { color: 'silver', material: 'stainless_steel' } },
     ],
     attributes: { brand: 'TechNest', type: 'smartwatch', display: 'AMOLED', gps: 'yes', battery: '7days' },
-    delivery_days: 3, rating: 4.8, image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.8,
+    image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
 
@@ -295,7 +321,9 @@ export const seedProducts: Product[] = [
     price: 1499, original_price: 1999, currency: 'INR', stock: 90,
     variants: [],
     attributes: { brand: 'CampusMart', type: 'desk_lamp', brightness_levels: '5', wireless_charger: 'yes' },
-    delivery_days: 3, rating: 4.4, image_url: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.4,
+    image_url: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -306,7 +334,9 @@ export const seedProducts: Product[] = [
     price: 1999, original_price: 2499, currency: 'INR', stock: 60,
     variants: [],
     attributes: { brand: 'CampusMart', material: 'aluminum', max_laptop_size: '16_inch', adjustable: 'yes' },
-    delivery_days: 3, rating: 4.6, image_url: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.6,
+    image_url: 'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -321,7 +351,9 @@ export const seedProducts: Product[] = [
       { id: 'v-cm003-grn', product_id: 'prod-cm-003', name: 'Olive Green', sku: 'CM-CB-GRN', price: 1799, stock: 25, attributes: { color: 'olive_green' } },
     ],
     attributes: { brand: 'CampusMart', laptop_fit: '16_inch', material: 'canvas', usb_port: 'yes' },
-    delivery_days: 3, rating: 4.5, image_url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.5,
+    image_url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -335,7 +367,9 @@ export const seedProducts: Product[] = [
       { id: 'v-cm004-wht', product_id: 'prod-cm-004', name: 'White', sku: 'CM-BB-WHT', price: 999, stock: 60, attributes: { color: 'white' } },
     ],
     attributes: { brand: 'CampusMart', type: 'TWS', battery: '24hrs', waterproof: 'IPX4' },
-    delivery_days: 2, rating: 4.1, image_url: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.1,
+    image_url: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -350,7 +384,9 @@ export const seedProducts: Product[] = [
       { id: 'v-cm005-10', product_id: 'prod-cm-005', name: 'Size 10 - Black', sku: 'CM-QR-10-BLK', price: 1999, stock: 25, attributes: { size: '10', color: 'black' } },
     ],
     attributes: { brand: 'CampusMart', type: 'daily_trainer', cushioning: 'cloud_eva', weight: '245g', drop: '8mm' },
-    delivery_days: 3, rating: 4.3, image_url: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.3,
+    image_url: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -361,7 +397,9 @@ export const seedProducts: Product[] = [
     price: 499, original_price: 649, currency: 'INR', stock: 300,
     variants: [],
     attributes: { brand: 'CampusMart', pages: '200', size: 'A4', pack: '5' },
-    delivery_days: 2, rating: 4.6, image_url: 'https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.6,
+    image_url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
 
@@ -374,7 +412,9 @@ export const seedProducts: Product[] = [
     price: 899, original_price: 1299, currency: 'INR', stock: 150,
     variants: [],
     attributes: { brand: 'FitFuel', levels: '5', material: 'Natural Latex', bag_included: 'yes' },
-    delivery_days: 2, rating: 4.7, image_url: 'https://images.unsplash.com/photo-1598289431512-b97b0917affc?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.7,
+    image_url: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -389,7 +429,9 @@ export const seedProducts: Product[] = [
       { id: 'v-ff002-xl', product_id: 'prod-ff-002', name: 'X-Large', sku: 'FF-PG-XL', price: 699, stock: 40, attributes: { size: 'XL' } },
     ],
     attributes: { brand: 'FitFuel', material: 'leather_microfiber', wrist_support: 'yes' },
-    delivery_days: 2, rating: 4.5, image_url: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.5,
+    image_url: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -404,7 +446,9 @@ export const seedProducts: Product[] = [
       { id: 'v-ff003-unf', product_id: 'prod-ff-003', name: 'Raw Unflavored', sku: 'FF-WPI-UNF', price: 2499, stock: 25, attributes: { flavor: 'unflavored' } },
     ],
     attributes: { brand: 'FitFuel', protein_per_scoop: '27g', weight: '1kg', sugar: '0g' },
-    delivery_days: 3, rating: 4.8, image_url: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.8,
+    image_url: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -419,7 +463,9 @@ export const seedProducts: Product[] = [
       { id: 'v-ff004-blu', product_id: 'prod-ff-004', name: 'Ocean Blue', sku: 'FF-YM-BLU', price: 1499, stock: 20, attributes: { color: 'blue' } },
     ],
     attributes: { brand: 'FitFuel', thickness: '6mm', material: 'Eco-TPE', alignment_lines: 'yes' },
-    delivery_days: 3, rating: 4.7, image_url: 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.7,
+    image_url: 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -435,7 +481,9 @@ export const seedProducts: Product[] = [
       { id: 'v-ff005-9r', product_id: 'prod-ff-005', name: 'Size 9 - Black/Red', sku: 'FF-SX-9-BR', price: 3999, stock: 7, attributes: { size: '9', color: 'black_red' } },
     ],
     attributes: { brand: 'FitFuel', type: 'cross_trainer', cushioning: 'dual_density', weight: '295g', drop: '4mm' },
-    delivery_days: 3, rating: 4.6, image_url: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.6,
+    image_url: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -449,7 +497,9 @@ export const seedProducts: Product[] = [
       { id: 'v-ff006-slv', product_id: 'prod-ff-006', name: 'Brushed Steel', sku: 'FF-SB-SLV', price: 899, stock: 80, attributes: { color: 'silver' } },
     ],
     attributes: { brand: 'FitFuel', capacity: '700ml', material: 'Stainless Steel 304' },
-    delivery_days: 2, rating: 4.7, image_url: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 2, rating: 4.7,
+    image_url: 'https://images.unsplash.com/photo-1570831739435-6601aa3fa4fb?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -464,7 +514,9 @@ export const seedProducts: Product[] = [
       { id: 'v-ff007-9w', product_id: 'prod-ff-007', name: 'Size 9 - White/Gold', sku: 'FF-ERC-9-WG', price: 6999, stock: 5, attributes: { size: '9', color: 'white_gold' } },
     ],
     attributes: { brand: 'FitFuel', type: 'marathon_racer', cushioning: 'carbon_infused', weight: '210g', drop: '8mm' },
-    delivery_days: 3, rating: 4.9, image_url: 'https://images.unsplash.com/photo-1582588678413-dbf45f4823e9?w=600&auto=format&fit=crop&q=80', ai_searchable: true,
+    delivery_days: 3, rating: 4.9,
+    image_url: 'https://images.unsplash.com/photo-1582588678413-dbf45f4823e9?w=600&auto=format&fit=crop&q=80',
+    ai_searchable: true,
     created_at: '2025-01-01T00:00:00Z',
   },
 ];

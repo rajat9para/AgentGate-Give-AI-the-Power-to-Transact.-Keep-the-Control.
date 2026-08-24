@@ -4,16 +4,16 @@
 
 function getApiBaseUrl(): string {
   const envUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
-  let base = envUrl || 'https://razorx-give-ai-the-power-to-transact.onrender.com/api';
-
-  // Remove trailing slashes
-  base = base.replace(/\/+$/, '');
-
-  // Auto-append /api if omitted
-  if (!base.endsWith('/api')) {
-    base = `${base}/api`;
+  if (envUrl) {
+    let base = envUrl.replace(/\/+$/, '');
+    if (!base.endsWith('/api')) base = `${base}/api`;
+    return base;
   }
-  return base;
+  // In local development or localhost browser, use Vite's configured proxy to local backend
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return '/api';
+  }
+  return 'https://razorx-give-ai-the-power-to-transact.onrender.com/api';
 }
 
 const API_BASE = getApiBaseUrl();

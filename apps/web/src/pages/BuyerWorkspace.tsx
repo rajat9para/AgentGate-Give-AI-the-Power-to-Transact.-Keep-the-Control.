@@ -52,6 +52,19 @@ const PROMPT_SUGGESTIONS = [
   },
 ];
 
+function getCategoryFallbackImage(category?: string): string {
+  switch (category?.toLowerCase()) {
+    case 'running_shoes': case 'shoes': return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+    case 'electronics': return 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80';
+    case 'student_essentials': return 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&auto=format&fit=crop&q=80';
+    case 'fitness': return 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=600&auto=format&fit=crop&q=80';
+    case 'nutrition': return 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80';
+    case 'clothing': return 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80';
+    case 'accessories': return 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80';
+    default: return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+  }
+}
+
 export default function BuyerWorkspace() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
@@ -581,7 +594,7 @@ export default function BuyerWorkspace() {
                       {msg.data.orders.map((ord: any, idx: number) => (
                         <div key={idx} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
                           <img
-                            src={ord.product_image || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80'}
+                            src={ord.product_image || getCategoryFallbackImage(ord.category)}
                             alt={ord.product_title}
                             style={{ width: 48, height: 48, borderRadius: 'var(--radius-sm)', objectFit: 'cover', flexShrink: 0 }}
                             onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}

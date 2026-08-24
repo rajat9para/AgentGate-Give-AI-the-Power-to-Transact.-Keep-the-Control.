@@ -42,6 +42,7 @@ export class ExecutionGateway {
     authorization: TransactionAuthorization;
     request: TransactionRequest;
     session_id: string;
+    productId?: string;
     variantId?: string | null;
     quantity?: number;
     simulateFailure?: boolean;
@@ -198,10 +199,16 @@ export class ExecutionGateway {
     // STAGE 4: Razorpay Order Creation & Payment Execution
     // ----------------------------------------------------
     try {
+      const productTitle = request.purpose.includes(':') ? request.purpose.split(':')[1].trim() : '';
+      const matchedProduct = params.productId
+        ? db.getProduct(params.productId)
+        : (productTitle ? db.getAllProducts().find(p => p.title.toLowerCase() === productTitle.toLowerCase() || p.id === productTitle) : null);
+      const resolvedProductId = matchedProduct ? matchedProduct.id : (params.productId || 'prod_item');
+
       const order = createOrder({
         userId: request.user_id,
         merchantId: request.merchant_id,
-        productId: request.purpose.includes(':') ? request.purpose.split(':')[1].trim() : 'prod_item',
+        productId: resolvedProductId,
         variantId: params.variantId || null,
         quantity: params.quantity || 1,
         unitPrice: request.amount,

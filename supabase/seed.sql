@@ -55,13 +55,13 @@ ON CONFLICT (merchant_id) DO NOTHING;
 
 -- 6. Products
 INSERT INTO products (id, merchant_id, title, description, category, price, floor_price, currency, rating, delivery_days, image_url) VALUES
-('prod-run-001', 'merchant-runpro', 'RunPro Velocity X Daily Trainer', 'High-mileage responsive running shoe with breathable mesh and carbon rubber outsole.', 'running_shoes', 5500.00, 4800.00, 'INR', 4.8, 2, 'https://images.unsplash.com/photo-1542291026-7eec264c27ff'),
-('prod-run-002', 'merchant-runpro', 'RunPro CloudStride Comfort', 'Plush cushioned trainer designed for recovery runs and everyday comfort.', 'running_shoes', 4999.00, 4400.00, 'INR', 4.7, 2, 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a'),
-('prod-run-003', 'merchant-runpro', 'RunPro Elite Marathoner Pro', 'Ultralight carbon-plated racing shoe engineered for race-day speed.', 'running_shoes', 8200.00, 7500.00, 'INR', 4.9, 3, 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2'),
-('prod-tech-001', 'merchant-technest', 'TechNest SoundWave Pro ANC Earbuds', 'Hybrid active noise cancelling wireless earbuds with 36-hour battery life.', 'electronics', 4499.00, 3999.00, 'INR', 4.7, 1, 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df'),
-('prod-tech-002', 'merchant-technest', 'TechNest PulseFit Smartwatch', 'AMOLED fitness tracker with continuous heart rate and SpO2 monitoring.', 'electronics', 3999.00, 3499.00, 'INR', 4.6, 2, 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a'),
-('prod-campus-001', 'merchant-campusmart', 'CampusMart GripMaster Yoga Mat', '6mm eco-friendly TPE non-slip exercise yoga mat with alignment lines.', 'fitness', 1499.00, 1200.00, 'INR', 4.5, 2, 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f'),
-('prod-campus-002', 'merchant-campusmart', 'CampusMart UltraBlend Whey 1kg', 'Pure whey protein isolate powder for post-workout recovery.', 'fitness', 2200.00, 1900.00, 'INR', 4.6, 1, 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f')
+('prod-run-001', 'merchant-runpro', 'RunPro Velocity X Daily Trainer', 'High-mileage responsive running shoe with breathable mesh and carbon rubber outsole.', 'running_shoes', 5500.00, 4800.00, 'INR', 4.8, 2, 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80'),
+('prod-run-002', 'merchant-runpro', 'RunPro CloudStride Comfort', 'Plush cushioned trainer designed for recovery runs and everyday comfort.', 'running_shoes', 4999.00, 4400.00, 'INR', 4.7, 2, 'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=600&auto=format&fit=crop&q=80'),
+('prod-run-003', 'merchant-runpro', 'RunPro Elite Marathoner Pro', 'Ultralight carbon-plated racing shoe engineered for race-day speed.', 'running_shoes', 8200.00, 7500.00, 'INR', 4.9, 3, 'https://images.unsplash.com/photo-1582588678413-dbf45f4823e9?w=600&auto=format&fit=crop&q=80'),
+('prod-tech-001', 'merchant-technest', 'TechNest SoundWave Pro ANC Earbuds', 'Hybrid active noise cancelling wireless earbuds with 36-hour battery life.', 'electronics', 4499.00, 3999.00, 'INR', 4.7, 1, 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80'),
+('prod-tech-002', 'merchant-technest', 'TechNest PulseFit Smartwatch', 'AMOLED fitness tracker with continuous heart rate and SpO2 monitoring.', 'electronics', 3999.00, 3499.00, 'INR', 4.6, 2, 'https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=600&auto=format&fit=crop&q=80'),
+('prod-campus-001', 'merchant-campusmart', 'CampusMart GripMaster Yoga Mat', '6mm eco-friendly TPE non-slip exercise yoga mat with alignment lines.', 'fitness', 1499.00, 1200.00, 'INR', 4.5, 2, 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=600&auto=format&fit=crop&q=80'),
+('prod-campus-002', 'merchant-campusmart', 'CampusMart UltraBlend Whey 1kg', 'Pure whey protein isolate powder for post-workout recovery.', 'fitness', 2200.00, 1900.00, 'INR', 4.6, 1, 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80')
 ON CONFLICT (id) DO NOTHING;
 
 -- 7. Product Variants

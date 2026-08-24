@@ -91,9 +91,13 @@ export function rankCandidates(products: Product[], intent: StructuredIntent): P
       relevanceScore += 30;
       matchReasons.push(`Category match: ${product.category}`);
     }
-    if (intent.subcategory && product.subcategory === intent.subcategory) {
-      relevanceScore += 15;
-      matchReasons.push(`Subcategory match: ${product.subcategory}`);
+    if (intent.subcategory) {
+      if (product.subcategory === intent.subcategory) {
+        relevanceScore += 35;
+        matchReasons.push(`Subcategory match: ${product.subcategory}`);
+      } else {
+        relevanceScore -= 25;
+      }
     }
 
     // Relevance: size match
@@ -126,17 +130,17 @@ export function rankCandidates(products: Product[], intent: StructuredIntent): P
         product.title.toLowerCase().includes(prefLower) ||
         Object.values(product.attributes).some(v => v.toLowerCase().includes(prefLower));
       if (matchFound) {
-        relevanceScore += 5;
+        relevanceScore += 8;
         matchReasons.push(`Matches preference: "${pref}"`);
       }
     }
 
-    // Price score: cheaper is better, within budget is best
+    // Price score: within budget is best
     if (product.price <= intent.max_price) {
-      priceScore = 25 * (1 - product.price / intent.max_price); // max 25 for cheapest
+      priceScore = 15 * (1 - (product.price / intent.max_price) * 0.4); // max 15
       matchReasons.push(`Within budget: ₹${product.price}`);
     } else {
-      priceScore = -10; // penalty for over-budget
+      priceScore = -15; // penalty for over-budget
       matchReasons.push(`Over budget: ₹${product.price} > ₹${intent.max_price}`);
     }
 

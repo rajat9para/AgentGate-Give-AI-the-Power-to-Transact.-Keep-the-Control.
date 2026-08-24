@@ -104,6 +104,28 @@ router.get('/buyer/history', (req: Request, res: Response) => {
     return;
   }
 
+function getCategoryFallbackImage(category?: string): string {
+  switch (category?.toLowerCase()) {
+    case 'running_shoes':
+    case 'shoes':
+      return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+    case 'electronics':
+      return 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80';
+    case 'student_essentials':
+      return 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&auto=format&fit=crop&q=80';
+    case 'fitness':
+      return 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=600&auto=format&fit=crop&q=80';
+    case 'nutrition':
+      return 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80';
+    case 'clothing':
+      return 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80';
+    case 'accessories':
+      return 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80';
+    default:
+      return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+  }
+}
+
   const rawOrders = db.getOrdersByUser(userId);
   const enrichedOrders = rawOrders.map((order) => {
     const merchant = db.getMerchant(order.merchant_id);
@@ -112,10 +134,11 @@ router.get('/buyer/history', (req: Request, res: Response) => {
 
     const items = (order.items || []).map((item) => {
       const product = db.getProduct(item.product_id);
+      const fallback = getCategoryFallbackImage(product?.category);
       return {
         ...item,
         product_title: product?.title || 'Autonomous Purchase Item',
-        product_image: product?.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
+        product_image: product?.image_url || fallback,
         category: product?.category || 'General',
         attributes: product?.attributes || {},
       };
@@ -123,6 +146,7 @@ router.get('/buyer/history', (req: Request, res: Response) => {
 
     const primaryItem = items[0];
     const product = primaryItem ? db.getProduct(primaryItem.product_id) : null;
+    const categoryFallback = getCategoryFallbackImage(product?.category);
 
     return {
       ...order,
@@ -131,7 +155,7 @@ router.get('/buyer/history', (req: Request, res: Response) => {
       merchant_logo: merchant?.logo_url,
       merchant_rating: merchant?.rating || 4.8,
       product_title: primaryItem?.product_title || product?.title || 'Autonomous Item',
-      product_image: primaryItem?.product_image || product?.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
+      product_image: primaryItem?.product_image || product?.image_url || categoryFallback,
       items,
       payment: latestPayment,
       payment_method: latestPayment?.method || 'card',
