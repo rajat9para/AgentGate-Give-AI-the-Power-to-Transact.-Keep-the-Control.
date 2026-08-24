@@ -1,5 +1,5 @@
 // ============================================================
-// AgentGate — Intent Parser (Groq AI / LLaMA 3.3)
+// AgentGate — Intent Parser (Groq AI)
 // Parses natural language into structured purchase intent
 // ============================================================
 
@@ -37,7 +37,7 @@ Rules:
 - Always set purchase to true unless user is just browsing.`;
 
 /**
- * Parse a natural language message into a structured intent using Groq LLaMA 3.3.
+ * Parse a natural language message into a structured intent using Groq AI.
  */
 export async function parseIntent(userMessage: string): Promise<StructuredIntent> {
   // If no API key, use rule-based fallback

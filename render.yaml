@@ -31,7 +31,7 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
 
-      # AI Model Provider (Groq / LLaMA 3.3)
+      # AI Model Provider (Groq API)
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL
