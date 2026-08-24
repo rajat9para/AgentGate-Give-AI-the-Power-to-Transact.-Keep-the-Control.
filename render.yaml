@@ -5,7 +5,7 @@
 
 services:
   - type: web
-    name: agentgate-api
+    name: RazorX-Give-AI-the-Power-to-Transact-Keep-the-Control
     runtime: node
     plan: starter
     region: oregon

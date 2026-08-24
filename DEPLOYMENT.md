@@ -127,10 +127,10 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
 
 1. **Connect Repository**:
    - Sign in to [Render](https://render.com) and click **New +** $\rightarrow$ **Web Service** (or use Blueprint with `render.yaml`).
-   - Select your GitHub repository: `https://github.com/rajat9para/AgentGate-Give-AI-the-Power-to-Transact.-Keep-the-Control..git`.
+   - Select your GitHub repository: `https://github.com/rajat9para/RazorX-Give-AI-the-Power-to-Transact.-Keep-the-Control..git`.
 
 2. **Configure Service Settings**:
-   - **Name**: `agentgate-api`
+   - **Name**: `RazorX-Give-AI-the-Power-to-Transact-Keep-the-Control` (or `razorx-api`)
    - **Runtime**: `Node`
    - **Build Command**: `npm install --include=dev && npm run build:api`
    - **Start Command**: `npm run start --workspace=apps/api`
@@ -145,7 +145,7 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
 
    # URLs
    FRONTEND_URL=https://your-agentgate-app.vercel.app
-   BACKEND_URL=https://agentgate-api.onrender.com
+   BACKEND_URL=https://razorx-give-ai-the-power-to-transact-keep-the-control.onrender.com
 
    # Supabase
    SUPABASE_URL=https://your-project.supabase.co
@@ -177,9 +177,9 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
 
 4. **Deploy**:
    - Trigger manual deploy. Once built, verify the health endpoints:
-     - `https://agentgate-api.onrender.com/health` (Liveness)
-     - `https://agentgate-api.onrender.com/ready` (Subsystems readiness)
-     - `https://agentgate-api.onrender.com/api/maintenance/ping` (Anti-sleep keep-alive)
+     - `https://<your-render-service>.onrender.com/health` (Liveness)
+     - `https://<your-render-service>.onrender.com/ready` (Subsystems readiness)
+     - `https://<your-render-service>.onrender.com/api/maintenance/ping` (Anti-sleep keep-alive)
 
 ---
 
@@ -194,7 +194,7 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
    - **Output Directory**: `apps/web/dist`
 3. **Configure Frontend Environment Variables**:
    ```env
-   VITE_API_BASE_URL=https://agentgate-api.onrender.com/api
+   VITE_API_BASE_URL=https://<your-render-service>.onrender.com/api
    VITE_APP_URL=https://your-agentgate-app.vercel.app
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
