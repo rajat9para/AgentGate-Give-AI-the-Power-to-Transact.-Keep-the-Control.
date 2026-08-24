@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ RazorX (AgentGate)
+# 🛡️ RazorX AI
 ### *Give AI the Power to Transact. Keep 100% Control of the Money.*
 
 **The Cryptographically Bound Autonomous Commerce & Permissioned Payment Layer for AI Agents**
