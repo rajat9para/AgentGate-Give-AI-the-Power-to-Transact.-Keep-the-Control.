@@ -148,7 +148,7 @@ const server = app.listen(config.port, () => {
   console.log(`
 ╔══════════════════════════════════════════════════════════════════╗
 ║                                                                  ║
-║   🚀 AgentGate Production Web Service (Render / Node.js)         ║
+║   🚀 RazorX Autonomous AI Commerce Service (Razorpay + AI)       ║
 ║                                                                  ║
 ║   Port:         ${config.port}                                             ║
 ║   Environment:  ${config.nodeEnv}                                      ║
@@ -167,10 +167,10 @@ const server = app.listen(config.port, () => {
 
 // 10. Graceful Shutdown Handling (SIGINT & SIGTERM for Render deployment)
 function handleGracefulShutdown(signal: string) {
-  console.log(`\n[AgentGate] Received ${signal}. Initiating graceful shutdown...`);
+  console.log(`\n[RazorX] Received ${signal}. Initiating graceful shutdown...`);
   maintenanceService.stop();
   server.close(() => {
-    console.log('[AgentGate] HTTP server closed cleanly. Exiting process.');
+    console.log('[RazorX] HTTP server closed cleanly. Exiting process.');
     process.exit(0);
   });
 

@@ -9,12 +9,15 @@ import { db } from '../db/database.js';
  * Search products matching a structured intent across all merchants.
  */
 export function searchProducts(intent: StructuredIntent): Product[] {
+  const maxPrice = (intent.max_price && intent.max_price > 0) ? intent.max_price : undefined;
+  const minPrice = (intent.min_price && intent.min_price > 0) ? intent.min_price : undefined;
+
   // First attempt: search with category, subcategory, maxPrice, inStock
   let results = db.searchProducts({
     category: intent.category || undefined,
     subcategory: intent.subcategory || undefined,
-    maxPrice: intent.max_price,
-    minPrice: intent.min_price,
+    maxPrice,
+    minPrice,
     inStock: true,
   });
 
@@ -22,8 +25,8 @@ export function searchProducts(intent: StructuredIntent): Product[] {
   if (results.length === 0 && intent.category) {
     results = db.searchProducts({
       category: intent.category,
-      maxPrice: intent.max_price,
-      minPrice: intent.min_price,
+      maxPrice,
+      minPrice,
       inStock: true,
     });
   }
@@ -31,8 +34,8 @@ export function searchProducts(intent: StructuredIntent): Product[] {
   // If still no results, search across all products within budget
   if (results.length === 0) {
     results = db.searchProducts({
-      maxPrice: intent.max_price,
-      minPrice: intent.min_price,
+      maxPrice,
+      minPrice,
       inStock: true,
     });
   }

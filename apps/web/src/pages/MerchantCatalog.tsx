@@ -4,9 +4,9 @@ import { merchantApi } from '../lib/api';
 
 const MERCHANTS = [
   { id: 'merchant-runpro', name: 'RunPro Sports' },
-  { id: 'merchant-technest', name: 'TechNest' },
-  { id: 'merchant-campusmart', name: 'CampusMart' },
-  { id: 'merchant-fitfuel', name: 'FitFuel' },
+  { id: 'merchant-technest', name: 'TechNest Electronics' },
+  { id: 'merchant-campusmart', name: 'CampusMart Essentials' },
+  { id: 'merchant-fitfuel', name: 'FitFuel Nutrition & Gear' },
 ];
 
 export default function MerchantCatalog() {
@@ -40,12 +40,15 @@ export default function MerchantCatalog() {
 
   return (
     <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1>AI-Readable Product Catalog</h1>
-          <p>Structured product inventory exposed to autonomous AI buyers for discovery and negotiation</p>
+          <h1>Machine-Readable Product Catalog</h1>
+          <p>Structured product inventory exposed to RazorX autonomous AI buyers for discovery, scoring & price negotiation</p>
         </div>
-        <span className="badge badge-green">Machine-Readable Schema</span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <span className="badge badge-green">AI-Searchable Schema</span>
+          <span className="badge badge-blue">Razorpay Auto-Checkout</span>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -56,7 +59,7 @@ export default function MerchantCatalog() {
             setSelectedMerchant(e.target.value);
             setCategoryFilter('ALL');
           }}
-          style={{ width: 220, fontWeight: 600 }}
+          style={{ width: 260, fontWeight: 600 }}
         >
           {MERCHANTS.map((m) => (
             <option key={m.id} value={m.id}>{m.name}</option>
@@ -64,13 +67,13 @@ export default function MerchantCatalog() {
         </select>
 
         <div style={{ position: 'relative', flex: 1, minWidth: 260 }}>
-          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input
             className="form-input"
-            placeholder="Search catalog by keyword, size, or feature..."
+            placeholder="Search catalog by product name, category, or features..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ width: '100%', paddingLeft: 38 }}
+            style={{ width: '100%', paddingLeft: 40 }}
           />
         </div>
       </div>
@@ -81,7 +84,14 @@ export default function MerchantCatalog() {
           {categories.map((cat) => (
             <button
               key={cat}
-              className={`category-pill ${categoryFilter === cat ? 'active' : ''}`}
+              className={`btn btn-secondary ${categoryFilter === cat ? 'active' : ''}`}
+              style={{
+                fontSize: 12,
+                padding: '6px 14px',
+                background: categoryFilter === cat ? 'var(--accent-gradient-glow)' : undefined,
+                borderColor: categoryFilter === cat ? 'var(--accent-primary)' : undefined,
+                color: categoryFilter === cat ? 'var(--accent-primary)' : undefined,
+              }}
               onClick={() => setCategoryFilter(cat)}
             >
               {cat.replace(/_/g, ' ').toUpperCase()}
@@ -91,35 +101,51 @@ export default function MerchantCatalog() {
       )}
 
       {!loaded ? (
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 100 }}><div className="spinner" /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><div className="spinner" /></div>
       ) : filtered.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
           <Package size={48} style={{ color: 'var(--text-muted)', marginBottom: 16 }} />
           <p style={{ color: 'var(--text-secondary)' }}>No products matching "{search}".</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
           {filtered.map((product) => {
             const discount = product.original_price > product.price
               ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
               : 0;
 
             return (
-              <div key={product.id} className="product-card">
-                <div className="product-card-header">
-                  <span className="product-card-title">{product.title}</span>
-                  <span className="badge badge-green" style={{ fontSize: 10, display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <Sparkles size={10} /> AI Ready
+              <div key={product.id} className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column' }}>
+                {/* Product Photo Header */}
+                {product.image_url && (
+                  <div style={{ width: '100%', height: 160, borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: 14, position: 'relative' }}>
+                    <img
+                      src={product.image_url}
+                      alt={product.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                    />
+                    {discount > 0 && (
+                      <span className="badge badge-amber" style={{ position: 'absolute', top: 10, right: 10, backdropFilter: 'blur(4px)' }}>
+                        {discount}% OFF
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                    {product.title}
+                  </span>
+                  <span className="badge badge-green" style={{ fontSize: 10, flexShrink: 0 }}>
+                    <Sparkles size={10} style={{ marginRight: 3 }} /> AI Ready
                   </span>
                 </div>
 
-                <div className="product-card-merchant" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '6px 0 10px 0' }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '4px 0 10px 0' }}>
                   <span className="badge badge-purple" style={{ fontSize: 10 }}>{product.category.replace(/_/g, ' ')}</span>
                   {product.subcategory && (
                     <span className="badge badge-blue" style={{ fontSize: 10 }}>{product.subcategory.replace(/_/g, ' ')}</span>
-                  )}
-                  {discount > 0 && (
-                    <span className="badge badge-amber" style={{ fontSize: 10 }}>{discount}% OFF</span>
                   )}
                 </div>
 
@@ -127,11 +153,13 @@ export default function MerchantCatalog() {
                   {product.description}
                 </p>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 'auto', paddingTop: 10, borderTop: '1px solid var(--border)' }}>
                   <div>
-                    <span className="product-card-price">₹{product.price}</span>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>₹{product.price}</span>
                     {product.original_price > product.price && (
-                      <span className="product-card-original-price">₹{product.original_price}</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through', marginLeft: 8 }}>
+                        ₹{product.original_price}
+                      </span>
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
@@ -142,12 +170,12 @@ export default function MerchantCatalog() {
                   </div>
                 </div>
 
-                <div className="product-card-rating" style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Star size={13} style={{ fill: 'var(--warning)', color: 'var(--warning)' }} />
                     <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{product.rating}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)', fontSize: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)' }}>
                     <Truck size={13} />
                     <span>{product.delivery_days} day delivery</span>
                   </div>

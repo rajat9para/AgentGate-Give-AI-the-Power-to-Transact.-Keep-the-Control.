@@ -154,11 +154,16 @@ export async function executeBuyerFlow(
 
   addMessage('agent', `📊 Found **${products.length} products** across ${new Set(products.map(p => p.merchant_id)).size} merchants. Top ${topCandidates.length} candidates ranked.`, 'comparison', {
     candidates: topCandidates.map(c => ({
+      id: c.product.id,
       title: c.product.title,
       merchant: c.merchant.name,
       price: c.product.price,
+      original_price: c.product.original_price,
       score: c.score,
       rating: c.product.rating,
+      image_url: c.product.image_url,
+      delivery_days: c.product.delivery_days,
+      match_reasons: c.match_reasons,
     })),
   });
 

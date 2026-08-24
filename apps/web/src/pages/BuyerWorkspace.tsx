@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import {
   Send, Bot, User, ShoppingCart, AlertTriangle, CheckCircle2,
   XCircle, ArrowRightLeft, CreditCard, FileText, Zap, Sparkles,
-  ShieldCheck, ShieldAlert, ArrowUpRight, Check, RefreshCw, Mic, MicOff, Volume2
+  ShieldCheck, ShieldAlert, ArrowUpRight, Check, RefreshCw, Mic, MicOff, Star, Truck
 } from 'lucide-react';
 import { buyerApi } from '../lib/api';
 
@@ -32,14 +32,14 @@ const PROMPT_SUGGESTIONS = [
     prompt: 'Buy a non-slip yoga mat under ₹2,000',
   },
   {
+    label: '🔍 Browse: Smartwatches',
+    badge: 'Browse Only',
+    prompt: 'Show me smartwatches under ₹10,000',
+  },
+  {
     label: '🚫 Policy Block: Limit Exceeded',
     badge: 'Trust Gate',
     prompt: 'Buy high-end smartwatch for ₹35,000',
-  },
-  {
-    label: '💡 Opportunity Tolerance Window',
-    badge: 'Smart AI',
-    prompt: 'Buy running shoes under ₹5,000',
   },
 ];
 
@@ -167,33 +167,10 @@ export default function BuyerWorkspace() {
     }
   };
 
-  const handleUpgradeOpportunity = (betterOption: any) => {
-    if (!betterOption) return;
-    setUpgradeToast(`Upgraded to ${betterOption.product.title} (₹${betterOption.product.price})! Policy override logged.`);
-    setTimeout(() => setUpgradeToast(null), 4000);
-
-    setMessages(prev => [
-      ...prev,
-      {
-        id: `upgrade-${Date.now()}`,
-        role: 'user',
-        content: `Yes, upgrade to ${betterOption.product.title} at ₹${betterOption.product.price}.`,
-        type: 'text',
-        timestamp: new Date().toISOString(),
-      },
-      {
-        id: `upgrade-resp-${Date.now()}`,
-        role: 'agent',
-        content: `🎉 **Opportunity Upgrade Accepted!**\n\nUpgraded to **${betterOption.product.title}** from **${betterOption.merchant.name}** for **₹${betterOption.product.price}**.\n✅ Single limit override approved under configured ${Math.round((lastResult?.opportunity?.price_overshoot_percent || 0.15) * 100)}% tolerance window.\n📋 Transaction reconciled into audit log.`,
-        type: 'payment',
-        timestamp: new Date().toISOString(),
-      },
-    ]);
-  };
-
   const getMessageIcon = (type: string) => {
     switch (type) {
       case 'comparison': return <ShoppingCart size={14} />;
+      case 'product_card': return <Sparkles size={14} />;
       case 'negotiation': return <ArrowRightLeft size={14} />;
       case 'policy': return <ShieldCheck size={14} />;
       case 'payment': return <CreditCard size={14} />;
@@ -210,7 +187,7 @@ export default function BuyerWorkspace() {
           <Bot size={48} style={{ color: 'var(--accent-primary)', marginBottom: 16 }} />
           <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Autonomous Agent Ready</h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6 }}>
-            Type a request or speak using the microphone. The agent will execute discovery across merchants, bounded price negotiation, Ed25519 cryptographic policy gates, and Razorpay checkout.
+            Type a request or speak using the microphone. RazorX discovers products across merchants, executes bounded negotiation, verifies Ed25519 policy gates, and completes Razorpay checkout.
           </p>
         </div>
       );
@@ -240,18 +217,33 @@ export default function BuyerWorkspace() {
         {/* Explainable Decision Card */}
         {lastResult.selected && isGreen && (
           <div className="decision-card">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <span style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Sparkles size={14} /> Explainable Decision Card
               </span>
               <span className="badge badge-purple">AI Audit Passed</span>
             </div>
 
+            {/* Product Visual Header */}
+            {lastResult.selected.product.image_url && (
+              <div style={{ width: '100%', height: 140, borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: 12, position: 'relative' }}>
+                <img
+                  src={lastResult.selected.product.image_url}
+                  alt={lastResult.selected.product.title}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                />
+                <div style={{ position: 'absolute', bottom: 8, left: 8, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', padding: '3px 8px', borderRadius: 6, fontSize: 11, color: '#fff', fontWeight: 600 }}>
+                  {lastResult.selected.merchant.name}
+                </div>
+              </div>
+            )}
+
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>
               {lastResult.selected.product.title}
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
-              Merchant: {lastResult.selected.merchant.name} • Match Score: {lastResult.selected.score}/100
+              Match Score: {lastResult.selected.score}/100 • Rating: ⭐ {lastResult.selected.product.rating || 4.5}
             </div>
 
             <div className="decision-grid">
@@ -314,7 +306,7 @@ export default function BuyerWorkspace() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h1>Autonomous AI Buyer Workspace</h1>
-          <p>Autonomous commerce execution with delegated policy boundaries, live negotiation & Razorpay recovery</p>
+          <p>Autonomous commerce execution with delegated policy boundaries, live price negotiation & Razorpay recovery</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <span className="badge badge-green">Razorpay Live API</span>
@@ -330,14 +322,70 @@ export default function BuyerWorkspace() {
           <div className="chat-messages-area">
             {messages.map((msg) => (
               <div key={msg.id} className={`chat-message-row ${msg.role}`}>
-                <div className="message-bubble">
+                <div className="message-bubble" style={{ maxWidth: '100%' }}>
                   {getMessageIcon(msg.type) && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', opacity: 0.85 }}>
                       {getMessageIcon(msg.type)}
-                      <span>{msg.type}</span>
+                      <span>{msg.type.replace(/_/g, ' ')}</span>
                     </div>
                   )}
                   <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }} />
+
+                  {/* Rich Product Comparison Cards in Chat */}
+                  {msg.type === 'comparison' && msg.data?.candidates && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginTop: 12 }}>
+                      {msg.data.candidates.map((c: any, idx: number) => (
+                        <div key={idx} style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {c.image_url && (
+                            <img
+                              src={c.image_url}
+                              alt={c.title}
+                              style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 'var(--radius-sm)' }}
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
+                          )}
+                          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.3 }}>{c.title}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>{c.merchant}</span>
+                            <span>⭐ {c.rating || 4.5}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2 }}>
+                            <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--accent-primary)' }}>₹{c.price}</span>
+                            {c.original_price > c.price && (
+                              <span style={{ fontSize: 11, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{c.original_price}</span>
+                            )}
+                          </div>
+                          <button
+                            className="btn btn-secondary"
+                            style={{ fontSize: 11, padding: '5px 8px', marginTop: 4, width: '100%' }}
+                            onClick={() => handleSendPrompt(`Buy ${c.title}`)}
+                            disabled={loading}
+                          >
+                            <Zap size={12} style={{ color: 'var(--accent-primary)' }} /> Buy with Razorpay
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Selected Product Card in Chat */}
+                  {msg.type === 'product_card' && msg.data?.product && (
+                    <div style={{ display: 'flex', gap: 12, background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 12, marginTop: 12, alignItems: 'center' }}>
+                      {msg.data.product.image_url && (
+                        <img
+                          src={msg.data.product.image_url}
+                          alt={msg.data.product.title}
+                          style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 'var(--radius-sm)', flexShrink: 0 }}
+                          onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                        />
+                      )}
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{msg.data.product.title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0' }}>Merchant: {msg.data.merchant?.name} • Rating: ⭐ {msg.data.product.rating}</div>
+                        <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--success)' }}>₹{msg.data.product.price}</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

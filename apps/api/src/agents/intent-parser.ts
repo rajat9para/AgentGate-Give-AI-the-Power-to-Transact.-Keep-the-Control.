@@ -283,7 +283,7 @@ function validateIntent(raw: any, userMessage: string): StructuredIntent {
     category: raw.category || 'running_shoes',
     subcategory: raw.subcategory || undefined,
     use_case: raw.use_case || undefined,
-    max_price: typeof raw.max_price === 'number' ? raw.max_price : 10000,
+    max_price: (typeof raw.max_price === 'number' && raw.max_price > 0) ? raw.max_price : 10000,
     min_price: typeof raw.min_price === 'number' ? raw.min_price : undefined,
     size: raw.size || undefined,
     color: raw.color || undefined,
