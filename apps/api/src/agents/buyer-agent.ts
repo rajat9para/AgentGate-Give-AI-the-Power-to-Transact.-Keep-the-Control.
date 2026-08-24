@@ -67,7 +67,151 @@ export async function executeBuyerFlow(
   const intent = await parseIntent(userMessage);
   db.updateAgentSession(session.id, { structured_intent: intent });
 
-  // 🛡️ CRITICAL GUARDRAIL: Handle Non-Shopping Interactions (Greetings, Help, General Chat)
+  // 📦 1. Handle Order History Queries
+  if (intent.intent_type === 'order_history_query') {
+    const rawOrders = db.getOrdersByUser(userId);
+    const enrichedOrders = rawOrders.map((order) => {
+      const merchant = db.getMerchant(order.merchant_id);
+      const payments = db.getPaymentsByOrder(order.id);
+      const latestPayment = payments[payments.length - 1] || null;
+      const primaryItem = order.items?.[0];
+      const product = primaryItem ? db.getProduct(primaryItem.product_id) : null;
+
+      return {
+        id: order.id,
+        status: (order.status === 'paid' || order.status === 'confirmed') ? 'delivered' : order.status,
+        merchant_name: merchant?.name || 'Verified Merchant',
+        merchant_logo: merchant?.logo_url,
+        product_title: product?.title || 'Autonomous Purchase Item',
+        product_image: product?.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
+        category: product?.category || 'General',
+        total_amount: order.total_amount,
+        negotiated_amount: order.negotiated_amount || order.total_amount,
+        payment_method: latestPayment?.method || 'card',
+        created_at: order.created_at,
+        razorpay_order_id: order.razorpay_order_id,
+        payment_id: latestPayment?.id,
+      };
+    });
+
+    let reply = '';
+    if (enrichedOrders.length === 0) {
+      reply = "📦 **No Past Orders Found**\n\nYou haven't placed any orders yet. Tell me what product you'd like to explore (e.g. *'Buy black running shoes size 9 under ₹6,000'* or *'Show wireless ANC earbuds'*), and I will discover products and negotiate discounts for you!";
+    } else {
+      reply = `📦 **You have placed ${enrichedOrders.length} order(s) in your history:**\n\n` +
+        enrichedOrders.map((o, idx) => `${idx + 1}. **${o.product_title}** from *${o.merchant_name}* — **₹${o.negotiated_amount?.toLocaleString()}** (${o.status.toUpperCase()}) [Order #${o.id.slice(0, 8)}]`).join('\n') +
+        `\n\nClick any order in your Order History page to view itemized GST tax invoices or cryptographic Ed25519 verification.`;
+    }
+
+    addMessage('agent', reply, 'text', { orders: enrichedOrders });
+
+    createAuditLog({
+      agentId: 'buyer-agent', userId, merchantId: null, sessionId: session.id,
+      action: 'order_history_inquiry', requestedAmount: null, approvedAmount: null,
+      reason: `Retrieved ${enrichedOrders.length} orders for user`,
+      policyResult: null, paymentId: null, orderId: null, result: 'success',
+    });
+
+    db.updateAgentSession(session.id, {
+      status: 'completed',
+      result_summary: `Order history retrieved (${enrichedOrders.length} orders)`,
+    });
+
+    return {
+      session_id: session.id,
+      intent,
+      candidates: [],
+      selected: null,
+      negotiation: null,
+      policy_evaluation: {
+        decision: 'GREEN',
+        reason: 'Order history inquiry — zero financial deduction',
+        details: {
+          amount_check: true,
+          daily_budget_check: true,
+          weekly_budget_check: true,
+          category_check: true,
+          payment_method_check: true,
+          remaining_daily_budget: 10000,
+          remaining_weekly_budget: 25000,
+        },
+      },
+      order: null,
+      payment: null,
+      opportunity: null,
+      audit_trail: getAuditTrail(session.id),
+      agent_messages: messages,
+    };
+  }
+
+  // 🛡️ 2. Handle Spending Policy & Budget Queries
+  if (intent.intent_type === 'policy_query') {
+    const policy = db.getUserPolicy(userId) || {
+      single_transaction_limit: 6000,
+      daily_limit: 10000,
+      weekly_limit: 25000,
+      allowed_categories: ['running_shoes', 'electronics', 'clothing', 'fitness', 'accessories', 'nutrition', 'student_essentials'],
+      autonomous_purchase: true,
+    };
+    const dailySpent = db.getDailySpending(userId);
+    const weeklySpent = db.getWeeklySpending(userId);
+    const dailyRemaining = Math.max(0, policy.daily_limit - dailySpent);
+    const weeklyRemaining = Math.max(0, policy.weekly_limit - weeklySpent);
+
+    const reply = `🛡️ **Your Active Spending Policy & Spending Budget:**\n\n` +
+      `* **Single Transaction Limit**: ₹${policy.single_transaction_limit?.toLocaleString()} *(Maximum allowed per autonomous purchase)*\n` +
+      `* **Daily Budget**: ₹${policy.daily_limit?.toLocaleString()} *(Spent today: ₹${dailySpent.toLocaleString()} | **Remaining: ₹${dailyRemaining.toLocaleString()}**)*\n` +
+      `* **Weekly Budget**: ₹${policy.weekly_limit?.toLocaleString()} *(Spent this week: ₹${weeklySpent.toLocaleString()} | **Remaining: ₹${weeklyRemaining.toLocaleString()}**)*\n` +
+      `* **Allowed Categories**: Running Shoes, Electronics, Fitness, Nutrition, Student Essentials, Clothing, Accessories\n` +
+      `* **Cryptographic Guard**: RFC 8032 Ed25519 Hardware-verified Signatures\n` +
+      `* **Autonomous Purchase**: ${policy.autonomous_purchase !== false ? '✅ Enabled' : '⏸️ Requires Manual Approval'}\n\n` +
+      `Any purchase request within ₹${policy.single_transaction_limit?.toLocaleString()} will be automatically negotiated and executed. Requests exceeding these bounds will be deterministically blocked.`;
+
+    addMessage('agent', reply, 'policy', {
+      policy,
+      spending: { dailySpent, dailyRemaining, weeklySpent, weeklyRemaining }
+    });
+
+    createAuditLog({
+      agentId: 'buyer-agent', userId, merchantId: null, sessionId: session.id,
+      action: 'policy_inquiry', requestedAmount: null, approvedAmount: null,
+      reason: `User inspected active policy limits (Daily remaining: ₹${dailyRemaining})`,
+      policyResult: null, paymentId: null, orderId: null, result: 'success',
+    });
+
+    db.updateAgentSession(session.id, {
+      status: 'completed',
+      result_summary: 'Policy details retrieved',
+    });
+
+    return {
+      session_id: session.id,
+      intent,
+      candidates: [],
+      selected: null,
+      negotiation: null,
+      policy_evaluation: {
+        decision: 'GREEN',
+        reason: 'Policy inquiry — zero financial deduction',
+        details: {
+          amount_check: true,
+          daily_budget_check: true,
+          weekly_budget_check: true,
+          category_check: true,
+          payment_method_check: true,
+          remaining_daily_budget: dailyRemaining,
+          remaining_weekly_budget: weeklyRemaining,
+        },
+      },
+      order: null,
+      payment: null,
+      opportunity: null,
+      audit_trail: getAuditTrail(session.id),
+      agent_messages: messages,
+    };
+  }
+
+  // 🛡️ 3. Handle Non-Shopping Interactions (Greetings, Help, General Chat)
   if (!intent.is_shopping_intent || intent.intent_type === 'greeting' || intent.intent_type === 'help' || intent.intent_type === 'unknown') {
     const reply = intent.conversational_reply ||
       "👋 Hello! I am your autonomous AI Buyer Agent connected to Razorpay.\n\nTell me what you're looking to purchase (e.g. *'Buy black running shoes size 9 under ₹6,000'*), and I will discover products, negotiate price discounts, verify your spending policy boundaries, and execute secure checkout.";

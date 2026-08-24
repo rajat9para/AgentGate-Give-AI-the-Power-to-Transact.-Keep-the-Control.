@@ -21,9 +21,14 @@ interface Message {
 
 const PROMPT_SUGGESTIONS = [
   {
-    label: '⚡ Winning Demo: Running Shoes',
-    badge: 'P0 Core',
+    label: '⚡ 1-Click Buy: Running Shoes',
+    badge: 'Autonomous AI',
     prompt: 'Buy black running shoes for daily training, size 9, under ₹6,000',
+  },
+  {
+    label: '🔍 Browse: Running Shoes',
+    badge: 'Discovery',
+    prompt: 'Show running shoes',
   },
   {
     label: '🎧 ANC Wireless Earbuds',
@@ -31,19 +36,19 @@ const PROMPT_SUGGESTIONS = [
     prompt: 'Buy wireless earbuds with active noise cancelling under ₹5,000',
   },
   {
-    label: '🧘 Eco Yoga Mat',
-    badge: 'Fitness',
-    prompt: 'Buy a non-slip yoga mat under ₹2,000',
+    label: '📦 My Order History',
+    badge: 'Order Tracking',
+    prompt: 'Show my order history and recent purchases',
   },
   {
-    label: '🔍 Browse: Smartwatches',
-    badge: 'Browse Only',
-    prompt: 'Show me smartwatches under ₹10,000',
+    label: '🛡️ Spending Policy & Budget',
+    badge: 'Policy Gate',
+    prompt: 'What is my spending policy and remaining daily budget?',
   },
   {
-    label: '🚫 Policy Block: Limit Exceeded',
-    badge: 'Trust Gate',
-    prompt: 'Buy high-end smartwatch for ₹35,000',
+    label: '🚫 Guardrail Block Test',
+    badge: 'Deterministic Block',
+    prompt: 'Buy luxury smartwatch for ₹35,000',
   },
 ];
 
@@ -138,13 +143,43 @@ export default function BuyerWorkspace() {
 
     setCheckoutProduct({
       title: prod.title,
-      image_url: prod.image_url,
       price: prod.price,
-      original_price: prod.original_price,
+      image_url: prod.image_url,
       merchant_name: merchantName,
-      negotiated_price: Math.round(prod.price * 0.92), // 8% negotiation discount
+      rating: prod.rating || 4.8,
     });
     setRazorpayModalOpen(true);
+  };
+
+  const handleRazorpayPaymentSuccess = (paymentDetails: any) => {
+    setRazorpayModalOpen(false);
+
+    const newOrderObj = {
+      id: `ord_${Date.now()}`,
+      product_title: checkoutProduct?.title,
+      product_image: checkoutProduct?.image_url,
+      merchant_name: checkoutProduct?.merchant_name,
+      total_amount: checkoutProduct?.price,
+      negotiated_amount: checkoutProduct?.price,
+      currency: 'INR',
+      payment_method: paymentDetails.method || 'card',
+      razorpay_order_id: paymentDetails.order_id,
+      razorpay_payment_id: paymentDetails.payment_id,
+      created_at: new Date().toISOString(),
+    };
+
+    setConfirmedOrder(newOrderObj);
+
+    setMessages(prev => [
+      ...prev,
+      {
+        id: `pay-success-${Date.now()}`,
+        role: 'agent',
+        content: `🎉 **Payment Successful via Razorpay Checkout!**\nPayment ID \`${paymentDetails.payment_id}\` captured successfully for **${checkoutProduct?.title}** (₹${checkoutProduct?.price?.toLocaleString()}).`,
+        type: 'text',
+        timestamp: new Date().toISOString(),
+      },
+    ]);
   };
 
   const handleSendPrompt = async (text: string) => {
@@ -181,6 +216,9 @@ export default function BuyerWorkspace() {
             timestamp: new Date().toISOString(),
           },
         ]);
+      } else if (result.intent?.intent_type === 'order_history_query' || result.intent?.intent_type === 'policy_query') {
+        const nonUserMessages = (result.agent_messages || []).filter((m: any) => m.role !== 'user');
+        setMessages(prev => [...prev, ...nonUserMessages]);
       } else if (result.candidates && result.candidates.length > 0) {
         const isPurchase = result.order && result.order.status !== 'blocked';
         const isBlocked = result.policy_evaluation?.decision === 'RED';
@@ -192,7 +230,7 @@ export default function BuyerWorkspace() {
             ? `🚫 **Policy Guardrail Blocked Transaction**\n${result.policy_evaluation.reason}`
             : isPurchase
             ? `🎉 **Autonomous Purchase Fulfilled & Delivered!**\nI negotiated a price reduction and executed checkout via Razorpay with Ed25519 authorization.`
-            : `🔍 **Matching Products Found**\nHere are the top ranked products across verified merchants. Scroll through the carousel below to select and buy with Razorpay.`,
+            : `🔍 **Matching Products Found (${result.candidates.length} candidates)**\nHere are the top ranked products across verified merchants. Scroll through the carousel below to select and buy with Razorpay or 1-Click Buy.`,
           type: isPurchase ? 'executive_summary' : 'carousel',
           data: {
             candidates: result.candidates,
@@ -202,6 +240,7 @@ export default function BuyerWorkspace() {
             order: result.order,
             payment: result.payment,
             authorization: result.authorization,
+            orders: result.orders,
           },
           timestamp: new Date().toISOString(),
         };
@@ -249,24 +288,27 @@ export default function BuyerWorkspace() {
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+    <div className="layout-content-wrapper">
+      <div className="page-header">
         <div>
-          <h1>Autonomous AI Buyer Workspace</h1>
-          <p>Autonomous commerce execution with delegated policy boundaries, live price negotiation & Razorpay recovery</p>
+          <h1 className="page-title">Autonomous Commerce Workspace</h1>
+          <p className="page-subtitle">
+            Delegate purchases to your AI Buyer Agent with real-time merchant negotiation and deterministic cryptographic policy control
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <span className="badge badge-green">Razorpay Live API</span>
-          <span className="badge badge-blue">Groq 120B Reasoning</span>
-          <span className="badge badge-purple">Ed25519 Guardrail</span>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-secondary" onClick={() => navigate('/buyer/history')}>
+            <FileText size={16} /> Order History
+          </button>
+          <button className="btn btn-secondary" onClick={() => navigate('/buyer/policy')}>
+            <ShieldCheck size={16} /> Spending Policy
+          </button>
         </div>
       </div>
 
-      {/* Workspace Grid */}
       <div className="workspace-grid">
-        {/* Chat Main Card */}
-        <div className="card chat-card">
+        {/* Main Chat Interface */}
+        <div className="chat-container">
           <div className="chat-messages-area">
             {messages.map((msg) => (
               <div key={msg.id} className={`chat-message-row ${msg.role}`}>
@@ -352,15 +394,27 @@ export default function BuyerWorkspace() {
                                 )}
                               </div>
 
-                              {/* Direct Razorpay Checkout Trigger */}
-                              <button
-                                className="btn btn-primary"
-                                style={{ marginTop: 'auto', fontSize: 12, padding: '8px 12px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6 }}
-                                onClick={() => handleOpenRazorpayCheckout(c)}
-                                disabled={loading}
-                              >
-                                <Zap size={14} /> Buy with Razorpay
-                              </button>
+                              {/* Action Buttons: Razorpay + 1-Click Autonomous Buy */}
+                              <div style={{ display: 'flex', gap: 6, marginTop: 'auto' }}>
+                                <button
+                                  className="btn btn-primary"
+                                  style={{ flex: 1, fontSize: 11, padding: '7px 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}
+                                  onClick={() => handleOpenRazorpayCheckout(c)}
+                                  disabled={loading}
+                                  title="Open Razorpay Standard Checkout"
+                                >
+                                  <Zap size={13} /> Buy with Razorpay
+                                </button>
+                                <button
+                                  className="btn btn-secondary"
+                                  style={{ fontSize: 11, padding: '7px 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}
+                                  onClick={() => handleSendPrompt(`Buy ${prod.title} under ₹${prod.price}`)}
+                                  disabled={loading}
+                                  title="Autonomous AI Negotiation & 1-Click Checkout"
+                                >
+                                  <Sparkles size={13} style={{ color: 'var(--accent-primary)' }} /> 1-Click
+                                </button>
+                              </div>
                             </div>
                           );
                         })}
@@ -467,6 +521,94 @@ export default function BuyerWorkspace() {
                           <Package size={14} /> Full Order Tracking Page
                         </button>
                       </div>
+
+                      {/* 🛒 Related / Alternative Candidates Carousel */}
+                      {msg.data.candidates && msg.data.candidates.length > 1 && (
+                        <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Sparkles size={14} style={{ color: 'var(--accent-primary)' }} /> Explore Other Matching Candidates & Recommendations
+                          </div>
+                          <div id={`track-sub-${msg.id}`} className="carousel-track">
+                            {msg.data.candidates.filter((c: any) => c.product?.id !== msg.data.selected?.product?.id).map((c: any, idx: number) => {
+                              const prod = c.product || c;
+                              return (
+                                <div key={idx} className="carousel-item" style={{ minWidth: 200, width: 200 }}>
+                                  <div className="carousel-image-box" style={{ height: 110 }}>
+                                    {prod.image_url && <img src={prod.image_url} alt={prod.title} onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />}
+                                    <span className="badge badge-green" style={{ position: 'absolute', bottom: 6, left: 6, fontSize: 9 }}>
+                                      {c.score || 95}% Match
+                                    </span>
+                                  </div>
+                                  <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {prod.title}
+                                  </div>
+                                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                                    {c.merchant?.name || 'Verified Merchant'}
+                                  </div>
+                                  <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--text-primary)', margin: '2px 0' }}>
+                                    ₹{prod.price?.toLocaleString()}
+                                  </div>
+                                  <div style={{ display: 'flex', gap: 4, marginTop: 'auto' }}>
+                                    <button
+                                      className="btn btn-primary"
+                                      style={{ flex: 1, fontSize: 10, padding: '5px 4px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 3 }}
+                                      onClick={() => handleOpenRazorpayCheckout(c)}
+                                      disabled={loading}
+                                    >
+                                      <Zap size={11} /> Razorpay
+                                    </button>
+                                    <button
+                                      className="btn btn-secondary"
+                                      style={{ fontSize: 10, padding: '5px 4px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 3 }}
+                                      onClick={() => handleSendPrompt(`Buy ${prod.title} under ₹${prod.price}`)}
+                                      disabled={loading}
+                                    >
+                                      <Sparkles size={11} /> 1-Click
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 📦 Order History Card inside Chat */}
+                  {msg.data?.orders && msg.data.orders.length > 0 && (
+                    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {msg.data.orders.map((ord: any, idx: number) => (
+                        <div key={idx} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
+                          <img
+                            src={ord.product_image || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80'}
+                            alt={ord.product_title}
+                            style={{ width: 48, height: 48, borderRadius: 'var(--radius-sm)', objectFit: 'cover', flexShrink: 0 }}
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {ord.product_title}
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                              {ord.merchant_name} • Order #{ord.id.slice(0, 8)}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--text-primary)' }}>
+                              ₹{ord.negotiated_amount?.toLocaleString()}
+                            </div>
+                            <span className="badge badge-green" style={{ fontSize: 9 }}>Delivered</span>
+                          </div>
+                          <button
+                            className="btn btn-secondary"
+                            style={{ fontSize: 11, padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4 }}
+                            onClick={() => setReceiptOrder(ord)}
+                          >
+                            <FileText size={12} /> Invoice
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -172,7 +172,7 @@ export interface StructuredIntent {
   preferences: string[];
   hard_constraints: string[];
   purchase: boolean;
-  intent_type?: 'purchase' | 'browse' | 'greeting' | 'help' | 'policy_query' | 'unknown';
+  intent_type?: 'purchase' | 'browse' | 'greeting' | 'help' | 'order_history_query' | 'policy_query' | 'unknown';
   is_shopping_intent?: boolean;
   conversational_reply?: string;
 }
