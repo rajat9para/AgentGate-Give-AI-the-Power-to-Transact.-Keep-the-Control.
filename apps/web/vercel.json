@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "framework": "vite",
+  "buildCommand": "tsc && vite build",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/(.*)",
