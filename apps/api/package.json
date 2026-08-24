@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "test": "node --import tsx src/test-policy.ts && node --import tsx src/test-flow.ts && node --import tsx src/crypto/security.test.ts && node --import tsx src/test-maintenance.ts",
+    "test": "node --import tsx src/test-conversational-safety.ts && node --import tsx src/test-policy.ts && node --import tsx src/test-flow.ts && node --import tsx src/crypto/security.test.ts && node --import tsx src/test-maintenance.ts",
     "test:policy": "node --import tsx src/test-policy.ts",
     "test:security": "node --import tsx src/crypto/security.test.ts",
     "test:maintenance": "node --import tsx src/test-maintenance.ts",

@@ -172,6 +172,9 @@ export interface StructuredIntent {
   preferences: string[];
   hard_constraints: string[];
   purchase: boolean;
+  intent_type?: 'purchase' | 'browse' | 'greeting' | 'help' | 'policy_query' | 'unknown';
+  is_shopping_intent?: boolean;
+  conversational_reply?: string;
 }
 
 export interface AgentAction {

@@ -1,6 +1,8 @@
 // ============================================================
 // AgentGate — Buyer Agent (Full Orchestrator)
-// Orchestrates: Intent → Search → Score → Negotiate → Policy → Pay → Recover → Audit
+// Orchestrates: Intent Classification → Search → Score → Negotiate → Policy → Pay → Recover → Audit
+// Robustly enforces that conversational messages (greetings, help, questions)
+// NEVER trigger orders, authorizations, or financial deductions.
 // ============================================================
 
 import { v4 as uuidv4 } from 'uuid';
@@ -53,7 +55,6 @@ export async function executeBuyerFlow(
   });
 
   addMessage('user', userMessage, 'text');
-  addMessage('agent', '🔍 Understanding your request...', 'text');
 
   // ---- Step 1: Parse Intent ----
   createAuditLog({
@@ -66,6 +67,54 @@ export async function executeBuyerFlow(
   const intent = await parseIntent(userMessage);
   db.updateAgentSession(session.id, { structured_intent: intent });
 
+  // 🛡️ CRITICAL GUARDRAIL: Handle Non-Shopping Interactions (Greetings, Help, General Chat)
+  if (!intent.is_shopping_intent || intent.intent_type === 'greeting' || intent.intent_type === 'help' || intent.intent_type === 'unknown') {
+    const reply = intent.conversational_reply ||
+      "👋 Hello! I am your autonomous AI Buyer Agent connected to Razorpay.\n\nTell me what you're looking to purchase (e.g. *'Buy black running shoes size 9 under ₹6,000'*), and I will discover products, negotiate price discounts, verify your spending policy boundaries, and execute secure checkout.";
+
+    addMessage('agent', reply, 'text');
+
+    createAuditLog({
+      agentId: 'buyer-agent', userId, merchantId: null, sessionId: session.id,
+      action: 'conversational_interaction', requestedAmount: null, approvedAmount: null,
+      reason: `User conversational interaction (${intent.intent_type}): "${userMessage}"`,
+      policyResult: null, paymentId: null, orderId: null, result: 'success',
+    });
+
+    db.updateAgentSession(session.id, {
+      status: 'completed',
+      result_summary: `Conversational response (${intent.intent_type})`,
+    });
+
+    return {
+      session_id: session.id,
+      intent,
+      candidates: [],
+      selected: null,
+      negotiation: null,
+      policy_evaluation: {
+        decision: 'GREEN',
+        reason: 'Conversational interaction — no purchase triggered and zero money deducted',
+        details: {
+          amount_check: true,
+          daily_budget_check: true,
+          weekly_budget_check: true,
+          category_check: true,
+          payment_method_check: true,
+          remaining_daily_budget: 10000,
+          remaining_weekly_budget: 25000,
+        },
+      },
+      order: null,
+      payment: null,
+      opportunity: null,
+      audit_trail: getAuditTrail(session.id),
+      agent_messages: messages,
+    };
+  }
+
+  // Shopping intent detected:
+  addMessage('agent', '🔍 Understanding your request...', 'text');
   addMessage('agent', `✅ Got it! Looking for **${intent.category.replace(/_/g, ' ')}** ${intent.subcategory ? `(${intent.subcategory.replace(/_/g, ' ')})` : ''} under **₹${intent.max_price}**${intent.size ? `, size ${intent.size}` : ''}${intent.color ? `, ${intent.color}` : ''}.`, 'text');
 
   createAuditLog({
@@ -90,7 +139,7 @@ export async function executeBuyerFlow(
       candidates: [],
       selected: null,
       negotiation: null,
-      policy_evaluation: { decision: 'RED', reason: 'No products found', details: { amount_check: false, daily_budget_check: false, weekly_budget_check: false, category_check: false, payment_method_check: false, remaining_daily_budget: 0, remaining_weekly_budget: 0 } },
+      policy_evaluation: { decision: 'RED', reason: 'No products found matching criteria', details: { amount_check: false, daily_budget_check: false, weekly_budget_check: false, category_check: false, payment_method_check: false, remaining_daily_budget: 0, remaining_weekly_budget: 0 } },
       order: null,
       payment: null,
       opportunity: null,
@@ -119,6 +168,26 @@ export async function executeBuyerFlow(
     reason: `Found ${products.length} products. Top candidate: ${topCandidates[0]?.product.title} at ₹${topCandidates[0]?.product.price} (score: ${topCandidates[0]?.score})`,
     policyResult: null, paymentId: null, orderId: null, result: 'success',
   });
+
+  // 🛡️ If browsing mode without explicit purchase verb:
+  if (!intent.purchase || intent.intent_type === 'browse') {
+    addMessage('agent', `💡 **Browsing Results**: Above are the top matching products from verified merchants.\n\nTo have me negotiate price discounts and purchase autonomously through Razorpay, say *\"Buy ${topCandidates[0]?.product.title}\"*!`, 'text');
+    db.updateAgentSession(session.id, { status: 'completed', result_summary: 'Browsing search completed' });
+
+    return {
+      session_id: session.id,
+      intent,
+      candidates: topCandidates,
+      selected: topCandidates[0] || null,
+      negotiation: null,
+      policy_evaluation: { decision: 'GREEN', reason: 'Browsing mode — no transaction executed', details: { amount_check: true, daily_budget_check: true, weekly_budget_check: true, category_check: true, payment_method_check: true, remaining_daily_budget: 10000, remaining_weekly_budget: 25000 } },
+      order: null,
+      payment: null,
+      opportunity: null,
+      audit_trail: getAuditTrail(session.id),
+      agent_messages: messages,
+    };
+  }
 
   // ---- Step 4: Select Best Valid Candidate ----
   const selected = topCandidates[0];
