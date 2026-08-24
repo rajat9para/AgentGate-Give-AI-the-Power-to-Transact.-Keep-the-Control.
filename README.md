@@ -1,9 +1,11 @@
 <div align="center">
 
-# 🛡️ RazorX AI
+<img src="projectlogo/agentgate-logo.png" alt="RazorX Logo" width="160" height="160" style="border-radius: 28px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.35); border: 2px solid rgba(255,255,255,0.15); margin-bottom: 12px;" />
+
+# 🛡️ RazorX
 ### *Give AI the Power to Transact. Keep 100% Control of the Money.*
 
-**The Cryptographically Bound Autonomous Commerce & Permissioned Payment Layer for AI Agents**
+**The Cryptographically Bound Autonomous Commerce & Permissioned Payment Protocol for AI Agents**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Security Standard](https://img.shields.io/badge/Security-Ed25519%20%28RFC%208032%29-7928CA?style=for-the-badge&logo=lock)](SECURITY_ARCHITECTURE.md)
@@ -14,11 +16,7 @@
 
 <br/>
 
-<img src="projectlogo/agentgate-logo.png" alt="AgentGate Logo" width="820" style="border-radius: 16px; box-shadow: 0 12px 36px rgba(0,0,0,0.35); margin-top: 15px;" />
-
-<br/><br/>
-
-### 🎥 [▶ Watch Live Full-System Demonstration Video](https://drive.google.com/file/d/1QFWzYUpMpgovVWtj7idxNNgx2ak0DvIA/view?usp=drive_link)
+### 🎥 [▶ Watch Full Live Working Demo Video](https://drive.google.com/file/d/1QFWzYUpMpgovVWtj7idxNNgx2ak0DvIA/view?usp=drive_link)
 *End-to-End Walkthrough: Natural Language Intent Parsing ➔ Federated Multi-Store Discovery ➔ Autonomous AI-to-AI Price Bidding ➔ Deterministic Policy Gate ➔ Ed25519 Signed Token Authorization ➔ Execution Gateway ➔ Autonomous UPI-to-Card Recovery ➔ Explainable Decision Card & Tax Invoice*
 
 ---
@@ -27,14 +25,14 @@
 
 ## 📌 Executive Overview & Core Problem
 
-As autonomous AI agents evolve from read-only conversational assistants into active economic actors that can plan, evaluate, and purchase goods, a catastrophic architectural dilemma emerges:
+As autonomous AI agents evolve from conversational assistants into active economic actors that can plan, evaluate, and purchase goods, a catastrophic architectural dilemma emerges:
 
 > **Generative AI models cannot be trusted with raw financial credentials or unrestricted payment gateway APIs.**  
-> LLMs hallucinate, misinterpret pricing boundaries, suffer from nondeterministic reasoning, and are inherently vulnerable to prompt injection attacks. Giving an AI model direct API keys or card details creates an intolerable financial liability.
+> LLMs hallucinate, misinterpret pricing boundaries, suffer from probabilistic reasoning variances, and are inherently vulnerable to prompt injection attacks. Giving an AI model direct API keys or credit card details creates an unacceptable financial liability.
 
 **RazorX (AgentGate)** solves this fundamental bottleneck by establishing a **Zero-Trust Cryptographic Execution Gateway** between autonomous AI agents and modern payment rails.
 
-AgentGate gives AI agents the freedom to discover, compare, and bargain across merchant catalogs, while enforcing a **Deterministic Mathematical Policy Engine** that guarantees zero out-of-bounds spending, eliminates replay attacks via **Ed25519 digital signatures (RFC 8032)**, isolates concurrent budget exhaustion via **Atomic Reservations**, and ensures total immutability through **SHA-256 Merkle Audit Chains**.
+RazorX gives AI agents the freedom to discover, compare, and bargain across merchant catalogs, while enforcing a **Deterministic Mathematical Policy Engine** that guarantees zero out-of-bounds spending, eliminates replay attacks via **Ed25519 digital signatures (RFC 8032)**, isolates concurrent budget exhaustion via **Atomic Reservations**, and ensures total immutability through **SHA-256 Merkle Audit Chains**.
 
 ```
 ┌─────────────────────────┐          ┌───────────────────────────┐          ┌─────────────────────────┐
@@ -104,7 +102,7 @@ The platform delivers a high-performance, dark-mode glassmorphic workspace tailo
 
 ## 🏗️ Comprehensive System Architecture
 
-AgentGate is architected around **Zero-Trust Financial Isolation**. The autonomous agents operate in an advisory and orchestration capacity, while the deterministic policy middleware sits between the agent and payment execution.
+RazorX is architected around **Zero-Trust Financial Isolation**. The autonomous agents operate strictly in an advisory and orchestration capacity, while the deterministic policy middleware sits between the agent and payment execution.
 
 ```
                                ┌────────────────────────────────────────┐
@@ -200,10 +198,10 @@ sequenceDiagram
     participant RA as Payment Recovery Agent
     participant Audit as Merkle Audit Chain
 
-    User->>BA: "Buy black running shoes size 9 under ₹6000 with fast delivery"
-    Note over BA: Parse Intent (Groq/Gemini LPU) & Extract Attributes
-    BA->>Cat: Query 4 verified merchant networks
-    Cat-->>BA: Return matching candidates with stock & variants
+    User->>BA: Natural Language Purchase Command ("Buy running shoes under ₹6000")
+    Note over BA: Parse Intent (Groq/Gemini LPU) & Extract Product Attributes
+    BA->>Cat: Query 4 verified merchant networks (26 products)
+    Cat-->>BA: Return matching candidates with stock & variant matrices
     Note over BA: Multi-factor scoring (Relevance, Price, Quality, Reliability)
 
     opt Negotiable Merchant Catalog
@@ -221,7 +219,7 @@ sequenceDiagram
     else Policy Evaluation = GREEN (Authorized)
         PE-->>BA: Issue Ed25519 Signed Auth Token
         BA->>GW: Submit Auth Token + Order Parameters
-        Note over GW: Verify Signature, Check Nonce, Lock Budget
+        Note over GW: Verify Signature, Check Nonce, Lock Budget Mutex
         GW->>RZP: Create Standard Razorpay Order (order_xxx)
         RZP-->>GW: Order Created
         GW->>RZP: Execute Primary Payment (UPI)
@@ -249,7 +247,7 @@ sequenceDiagram
 ### 1. Asymmetric Transaction Signatures (Ed25519 / RFC 8032)
 When a transaction satisfies all deterministic policy invariants, the Policy Engine generates a cryptographically signed authorization token using an **Ed25519 private key**:
 $$\text{Signature} = \text{Sign}_{\text{privKey}}\Big(\text{SHA-256}\big(\text{user\_id} \mathbin{\Vert} \text{merchant\_id} \mathbin{\Vert} \text{amount} \mathbin{\Vert} \text{nonce} \mathbin{\Vert} \text{category} \mathbin{\Vert} \text{policy\_hash}\big)\Big)$$
-- If any parameter is tampered with (e.g., amount altered from ₹5,538 to ₹5,539, or merchant ID modified), signature verification **fails closed**, aborting the transaction before hitting payment gateways.
+- If any parameter is tampered with (e.g., amount altered from ₹5,538 to ₹5,539, or merchant ID modified), signature verification **fails closed**, aborting the transaction before touching payment rails.
 
 ### 2. Idempotency & Nonce Anti-Replay Defense
 - Every transaction authorization contains a unique UUIDv4 nonce.
@@ -257,7 +255,7 @@ $$\text{Signature} = \text{Sign}_{\text{privKey}}\Big(\text{SHA-256}\big(\text{u
 - Nonces are consumed atomically upon gateway ingestion, preventing double-spend and replay attacks.
 
 ### 3. Atomic Mutex Budget Reservation Engine
-- To prevent concurrent race conditions where parallel requests bypass daily velocity limits, AgentGate uses an **Atomic Budget Reservation Engine**.
+- To prevent concurrent race conditions where parallel requests bypass daily velocity limits, RazorX uses an **Atomic Budget Reservation Engine**.
 - Funds are locked into a pending reservation state *before* invoking Razorpay APIs and committed only upon payment confirmation.
 
 ### 4. SHA-256 Merkle Audit Hash Chain
@@ -269,7 +267,7 @@ $$\text{Block\_Hash}_n = \text{SHA-256}\big(\text{Block\_Hash}_{n-1} \mathbin{\V
 
 ## 🤖 Multi-Agent Orchestration Plane
 
-AgentGate organizes commerce interactions across four specialized agents:
+RazorX organizes commerce interactions across four specialized agents:
 
 ### 1. AI Buyer Agent
 - **Semantic Intent Classifier**: Extracts structured search criteria, max budget, size, color, brand preferences, and use-cases from natural language.
@@ -381,5 +379,5 @@ Every completed transaction generates an **Explainable Decision Card** and a **G
 - **License**: Released under the open-source **[MIT License](LICENSE)**.
 
 <div align="center">
-  <sub>RazorX (AgentGate) • The Cryptographically Bound Trust Layer for Autonomous AI Commerce</sub>
+  <sub>RazorX • The Cryptographically Bound Trust Layer for Autonomous AI Commerce</sub>
 </div>
