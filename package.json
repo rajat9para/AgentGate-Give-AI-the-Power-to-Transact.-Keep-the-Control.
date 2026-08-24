@@ -18,8 +18,10 @@
     "test:policy": "npm run test:policy --workspace=apps/api",
     "test:security": "npm run test:security --workspace=apps/api"
   },
-  "devDependencies": {
-    "concurrently": "^9.1.0",
+  "dependencies": {
     "typescript": "^5.7.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
   }
 }

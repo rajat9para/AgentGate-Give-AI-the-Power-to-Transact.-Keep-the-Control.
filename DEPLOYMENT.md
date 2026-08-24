@@ -132,7 +132,7 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
 2. **Configure Service Settings**:
    - **Name**: `agentgate-api`
    - **Runtime**: `Node`
-   - **Build Command**: `npm install && npm run build:api`
+   - **Build Command**: `npm install --include=dev && npm run build:api`
    - **Start Command**: `npm run start --workspace=apps/api`
    - **Health Check Path**: `/health`
 

@@ -9,7 +9,7 @@ services:
     runtime: node
     plan: starter
     region: oregon
-    buildCommand: npm install && npm run build:api
+    buildCommand: npm install --include=dev && npm run build:api
     startCommand: npm run start --workspace=apps/api
     healthCheckPath: /health
     autoDeploy: true
