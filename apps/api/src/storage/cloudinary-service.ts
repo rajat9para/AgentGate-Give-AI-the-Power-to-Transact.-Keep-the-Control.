@@ -104,6 +104,21 @@ export class CloudinaryStorageService {
   }
 
   /**
+   * Returns public client upload configuration for unsigned direct browser uploads.
+   */
+  public getPublicUploadConfig(): {
+    cloudName: string;
+    uploadPreset: string;
+    isConfigured: boolean;
+  } {
+    return {
+      cloudName: config.cloudinary.cloudName || 'jwgfwolu',
+      uploadPreset: config.cloudinary.uploadPreset || 'agentgate',
+      isConfigured: config.cloudinary.isConfigured,
+    };
+  }
+
+  /**
    * Generates a signed upload signature for direct browser uploads without exposing secrets.
    */
   public generateSignedUploadParams(folder: string = 'agentgate/uploads'): {
@@ -111,6 +126,7 @@ export class CloudinaryStorageService {
     timestamp: number;
     cloudName: string;
     apiKey: string;
+    uploadPreset: string;
     folder: string;
   } {
     const timestamp = Math.round(Date.now() / 1000);
@@ -126,6 +142,7 @@ export class CloudinaryStorageService {
         timestamp,
         cloudName: config.cloudinary.cloudName,
         apiKey: config.cloudinary.apiKey,
+        uploadPreset: config.cloudinary.uploadPreset || 'agentgate',
         folder,
       };
     }
@@ -133,8 +150,9 @@ export class CloudinaryStorageService {
     return {
       signature: 'simulated_signed_signature_' + uuidv4().slice(0, 8),
       timestamp,
-      cloudName: config.cloudinary.cloudName || 'agentgate-demo',
-      apiKey: config.cloudinary.apiKey || 'demo_key',
+      cloudName: config.cloudinary.cloudName || 'jwgfwolu',
+      apiKey: config.cloudinary.apiKey || '463512949891211',
+      uploadPreset: config.cloudinary.uploadPreset || 'agentgate',
       folder,
     };
   }

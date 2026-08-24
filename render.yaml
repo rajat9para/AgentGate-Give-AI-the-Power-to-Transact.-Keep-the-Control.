@@ -52,6 +52,14 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      - key: CLOUDINARY_UPLOAD_PRESET
+        value: agentgate
+
+      # Anti-Sleep & Free-Tier Optimization
+      - key: SUPABASE_KEEP_ALIVE_INTERVAL_MS
+        value: "12600000"
+      - key: DATA_RETENTION_DAYS
+        value: "15"
 
       # AgentGate Cryptographic Signing Authority (Ed25519)
       - key: AGENTGATE_KEY_ID

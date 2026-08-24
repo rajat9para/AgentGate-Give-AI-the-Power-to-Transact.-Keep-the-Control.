@@ -222,6 +222,86 @@ export class SupabaseDatabaseService {
       console.error('[Supabase] Failed to persist audit event:', err?.message);
     }
   }
+
+  /**
+   * Anti-Sleep Keep-Alive Ping.
+   * Executes a lightweight query against Supabase to keep connections active.
+   */
+  public async executeRawPing(): Promise<{ success: boolean; latencyMs: number; error?: string }> {
+    if (!this.client) {
+      return { success: true, latencyMs: 1 };
+    }
+
+    const start = Date.now();
+    try {
+      const { error } = await this.client.from('merchants').select('id').limit(1);
+      const latencyMs = Date.now() - start;
+      if (error) {
+        return { success: false, latencyMs, error: error.message };
+      }
+      return { success: true, latencyMs };
+    } catch (err: any) {
+      return { success: false, latencyMs: Date.now() - start, error: err?.message || 'Ping failed' };
+    }
+  }
+
+  /**
+   * Free-Tier Optimization: Auto-cleanup of expired/stale records older than N days (default 15 days).
+   * Keeps storage usage lean and well within Supabase free-tier limits.
+   */
+  public async pruneStaleRecords(days: number = 15): Promise<{
+    success: boolean;
+    deletedNonces: number;
+    deletedReservations: number;
+    timestamp: string;
+  }> {
+    const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    let deletedNonces = 0;
+    let deletedReservations = 0;
+
+    if (!this.client) {
+      return { success: true, deletedNonces: 0, deletedReservations: 0, timestamp: new Date().toISOString() };
+    }
+
+    try {
+      // 1. Delete consumed nonces older than cutoff
+      const { count: nonceCount, error: nonceErr } = await this.client
+        .from('authorization_nonces')
+        .delete({ count: 'exact' })
+        .lt('consumed_at', cutoffDate);
+
+      if (!nonceErr && typeof nonceCount === 'number') {
+        deletedNonces = nonceCount;
+      }
+
+      // 2. Delete expired spending reservations older than cutoff
+      const { count: resCount, error: resErr } = await this.client
+        .from('spending_reservations')
+        .delete({ count: 'exact' })
+        .lt('expires_at', cutoffDate);
+
+      if (!resErr && typeof resCount === 'number') {
+        deletedReservations = resCount;
+      }
+
+      console.log(`[Supabase Maintenance] Pruned records older than ${days} days: ${deletedNonces} nonces, ${deletedReservations} reservations.`);
+
+      return {
+        success: true,
+        deletedNonces,
+        deletedReservations,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (err: any) {
+      console.error('[Supabase Maintenance] Prune failed:', err?.message);
+      return {
+        success: false,
+        deletedNonces,
+        deletedReservations,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
 }
 
 export const supabaseDb = new SupabaseDatabaseService();

@@ -160,10 +160,15 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
    RAZORPAY_KEY_SECRET=your_razorpay_key_secret
    RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
 
-   # Cloudinary
+   # Cloudinary Media Storage
    CLOUDINARY_CLOUD_NAME=your_cloudinary_name
    CLOUDINARY_API_KEY=your_cloudinary_key
    CLOUDINARY_API_SECRET=your_cloudinary_secret
+   CLOUDINARY_UPLOAD_PRESET=agentgate
+
+   # Anti-Sleep & Free-Tier Optimization
+   SUPABASE_KEEP_ALIVE_INTERVAL_MS=12600000
+   DATA_RETENTION_DAYS=15
 
    # Ed25519 Signing Authority
    AGENTGATE_KEY_ID=agentgate-prod-2026-08-v1
@@ -174,6 +179,7 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
    - Trigger manual deploy. Once built, verify the health endpoints:
      - `https://agentgate-api.onrender.com/health` (Liveness)
      - `https://agentgate-api.onrender.com/ready` (Subsystems readiness)
+     - `https://agentgate-api.onrender.com/api/maintenance/ping` (Anti-sleep keep-alive)
 
 ---
 
@@ -184,8 +190,8 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
    - Select your GitHub repository.
 2. **Build and Output Settings**:
    - **Framework Preset**: `Vite`
-   - **Root Directory**: `apps/web` (or root with `npm run build --workspace=apps/web`)
-   - **Output Directory**: `dist`
+   - **Root Directory**: `./` (Default root using preconfigured `vercel.json`)
+   - **Output Directory**: `apps/web/dist`
 3. **Configure Frontend Environment Variables**:
    ```env
    VITE_API_BASE_URL=https://agentgate-api.onrender.com/api
@@ -193,6 +199,7 @@ AgentGate utilizes a decoupled, enterprise cloud architecture:
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    VITE_CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+   VITE_CLOUDINARY_UPLOAD_PRESET=agentgate
    VITE_RAZORPAY_KEY_ID=rzp_test_your_key_id
    ```
 4. **Deploy & Bind Domain**:

@@ -24,7 +24,13 @@ export interface AgentGateConfig {
     cloudName: string;
     apiKey: string;
     apiSecret: string;
+    uploadPreset: string;
     isConfigured: boolean;
+  };
+
+  maintenance: {
+    keepAliveIntervalMs: number;
+    retentionDays: number;
   };
 
   groq: {
@@ -52,6 +58,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME || '';
 const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || '';
 const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || '';
+const cloudinaryPreset = process.env.CLOUDINARY_UPLOAD_PRESET || 'agentgate';
 const groqApiKey = process.env.GROQ_API_KEY || '';
 const razorpayKeyId = process.env.RAZORPAY_KEY_ID || '';
 const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || '';
@@ -75,7 +82,13 @@ export const config: AgentGateConfig = {
     cloudName: cloudinaryCloudName,
     apiKey: cloudinaryApiKey,
     apiSecret: cloudinaryApiSecret,
+    uploadPreset: cloudinaryPreset,
     isConfigured: Boolean(cloudinaryCloudName && cloudinaryApiKey && cloudinaryApiSecret),
+  },
+
+  maintenance: {
+    keepAliveIntervalMs: parseInt(process.env.SUPABASE_KEEP_ALIVE_INTERVAL_MS || '12600000', 10), // 3.5 hours default
+    retentionDays: parseInt(process.env.DATA_RETENTION_DAYS || '15', 10), // 15 days retention
   },
 
   groq: {

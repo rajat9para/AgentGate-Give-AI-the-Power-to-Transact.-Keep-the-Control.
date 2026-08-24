@@ -120,7 +120,44 @@ export const storageApi = {
       method: 'POST',
       body: JSON.stringify({ folder }),
     }),
+  getConfig: () => request<{ cloudName: string; uploadPreset: string; isConfigured: boolean }>('/storage/config'),
   getById: (id: string) => request<any>(`/storage/${id}`),
+
+  /**
+   * Direct browser-to-Cloudinary upload using unsigned preset
+   */
+  uploadDirect: async (file: File | Blob, folder: string = 'agentgate/uploads') => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'jwgfwolu';
+    const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'agentgate';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', preset);
+    formData.append('folder', folder);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Cloudinary upload failed (HTTP ${res.status})`);
+    }
+
+    return res.json();
+  },
+};
+
+// ---- System Maintenance & Supabase Keep-Alive ----
+export const maintenanceApi = {
+  ping: () => request<any>('/maintenance/ping'),
+  cleanup: (days?: number) =>
+    request<any>('/maintenance/cleanup', {
+      method: 'POST',
+      body: JSON.stringify({ retention_days: days || 15 }),
+    }),
+  status: () => request<any>('/maintenance/status'),
 };
 
 // ---- Health & Readiness ----

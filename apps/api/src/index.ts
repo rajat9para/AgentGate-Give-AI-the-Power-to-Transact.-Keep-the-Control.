@@ -11,6 +11,7 @@ import { requestCorrelationMiddleware } from './middleware/logger.js';
 import { requestTimeoutMiddleware, notFoundHandler, centralizedErrorHandler } from './middleware/error-handler.js';
 import { keyManager } from './crypto/key-manager.js';
 import { supabaseDb } from './db/supabase-client.js';
+import { maintenanceService } from './services/maintenance-service.js';
 
 const app = express();
 
@@ -139,8 +140,11 @@ app.use(centralizedErrorHandler);
 // 8. Initialize In-Memory Database State
 initializeDatabase();
 
-// 9. Start HTTP Server
+// 9. Start HTTP Server & Background Workers
 const server = app.listen(config.port, () => {
+  // Start anti-sleep keep-alive and data retention jobs
+  maintenanceService.start();
+
   console.log(`
 ╔══════════════════════════════════════════════════════════════════╗
 ║                                                                  ║
@@ -150,8 +154,8 @@ const server = app.listen(config.port, () => {
 ║   Environment:  ${config.nodeEnv}                                      ║
 ║   Mode:         ${config.demoMode ? 'DEMO (simulated)' : 'PRODUCTION'}                              ║
 ║   Key Manager:  Ed25519 (${keyManager.getActiveKeyId()}) ║
-║   Supabase:     ${config.supabase.isConfigured ? 'Configured (PostgreSQL)' : 'In-Memory State'}                  ║
-║   Cloudinary:   ${config.cloudinary.isConfigured ? 'Configured (Cloud Storage)' : 'In-Memory Mock'}                  ║
+║   Supabase:     ${config.supabase.isConfigured ? 'Configured (PostgreSQL + Anti-Sleep)' : 'In-Memory State'}        ║
+║   Cloudinary:   ${config.cloudinary.isConfigured ? 'Configured (Cloud Storage: ' + config.cloudinary.cloudName + ')' : 'In-Memory Mock'}        ║
 ║   Razorpay:     ${config.demoMode ? 'Simulated (Test Mode)' : (config.razorpay.isConfigured ? 'Configured (Live)' : 'Unconfigured')}            ║
 ║   Groq AI:      ${config.groq.isConfigured ? 'Configured (Live LLaMA 3.3)' : 'Regex / Fallback Parser'}             ║
 ║                                                                  ║
@@ -164,6 +168,7 @@ const server = app.listen(config.port, () => {
 // 10. Graceful Shutdown Handling (SIGINT & SIGTERM for Render deployment)
 function handleGracefulShutdown(signal: string) {
   console.log(`\n[AgentGate] Received ${signal}. Initiating graceful shutdown...`);
+  maintenanceService.stop();
   server.close(() => {
     console.log('[AgentGate] HTTP server closed cleanly. Exiting process.');
     process.exit(0);

@@ -15,6 +15,7 @@ import { verifyTransactionAuthorization } from '../crypto/authorization.js';
 import { aiIntentRateLimiter, webhookRateLimiter } from '../middleware/rate-limit.js';
 import { cloudinaryStorageService } from '../storage/cloudinary-service.js';
 import { supabaseDb } from '../db/supabase-client.js';
+import { maintenanceService } from '../services/maintenance-service.js';
 import { config } from '../config.js';
 
 export const router = Router();
@@ -330,6 +331,14 @@ router.post('/storage/signed-params', (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/storage/config
+ * Public upload metadata for browser direct uploads
+ */
+router.get('/storage/config', (_req: Request, res: Response) => {
+  res.json(cloudinaryStorageService.getPublicUploadConfig());
+});
+
+/**
  * GET /api/storage/:id
  */
 router.get('/storage/:id', (req: Request, res: Response) => {
@@ -339,6 +348,42 @@ router.get('/storage/:id', (req: Request, res: Response) => {
     return;
   }
   res.json(media);
+});
+
+// ============================================================
+// System Maintenance & Anti-Sleep Keep-Alive Routes
+// ============================================================
+
+/**
+ * GET /api/maintenance/ping or POST /api/maintenance/ping
+ * Pings Supabase PostgreSQL to prevent database auto-pause.
+ */
+router.all('/maintenance/ping', async (_req: Request, res: Response) => {
+  const result = await maintenanceService.pingSupabase();
+  res.status(result.success ? 200 : 500).json({
+    status: result.success ? 'ok' : 'failed',
+    message: result.success ? 'Supabase keep-alive ping successful' : result.error,
+    latency_ms: result.latencyMs,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * POST /api/maintenance/cleanup
+ * Free-Tier Optimization: Cleans up records older than 15 days
+ */
+router.post('/maintenance/cleanup', async (req: Request, res: Response) => {
+  const days = req.body?.retention_days ? parseInt(String(req.body.retention_days), 10) : config.maintenance.retentionDays;
+  const result = await maintenanceService.runCleanup(days);
+  res.json(result);
+});
+
+/**
+ * GET /api/maintenance/status
+ * Returns health & scheduled background worker status
+ */
+router.get('/maintenance/status', (_req: Request, res: Response) => {
+  res.json(maintenanceService.getStatus());
 });
 
 // ============================================================
