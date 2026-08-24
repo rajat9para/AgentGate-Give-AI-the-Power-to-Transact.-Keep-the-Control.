@@ -74,7 +74,92 @@ export function initializeDatabase(): void {
   };
   userPolicies.set(demoPolicy.id, demoPolicy);
 
-  console.log(`[DB] Initialized: ${merchants.size} merchants, ${products.size} products, ${users.size} users`);
+  // Seed sample initial fulfilled orders for demo buyer
+  const seedOrder1: Order = {
+    id: 'ord_demo_seed_001',
+    user_id: 'demo-buyer-001',
+    merchant_id: 'merchant-runpro',
+    status: 'delivered',
+    total_amount: 5799,
+    negotiated_amount: 5219,
+    currency: 'INR',
+    items: [{
+      id: 'item_seed_001',
+      order_id: 'ord_demo_seed_001',
+      product_id: 'prod-rp-001',
+      variant_id: 'v-rp001-9',
+      quantity: 1,
+      unit_price: 5219,
+      total_price: 5219,
+    }],
+    razorpay_order_id: 'order_demo_seed_rzp_01',
+    payment_id: 'pay_demo_seed_rzp_01',
+    agent_session_id: 'sess_seed_001',
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+  };
+  orders.set(seedOrder1.id, seedOrder1);
+
+  const seedPayment1: Payment = {
+    id: 'pay_demo_seed_rzp_01',
+    order_id: 'ord_demo_seed_001',
+    razorpay_payment_id: 'pay_seed_card_9921',
+    razorpay_order_id: 'order_demo_seed_rzp_01',
+    amount: 5219,
+    currency: 'INR',
+    method: 'card',
+    status: 'captured',
+    failure_reason: null,
+    is_recovery_attempt: true,
+    recovery_attempt_number: 1,
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+  };
+  payments.set(seedPayment1.id, seedPayment1);
+
+  const seedOrder2: Order = {
+    id: 'ord_demo_seed_002',
+    user_id: 'demo-buyer-001',
+    merchant_id: 'merchant-technest',
+    status: 'delivered',
+    total_amount: 4499,
+    negotiated_amount: 4184,
+    currency: 'INR',
+    items: [{
+      id: 'item_seed_002',
+      order_id: 'ord_demo_seed_002',
+      product_id: 'prod-tn-001',
+      variant_id: 'v-tn001-blk',
+      quantity: 1,
+      unit_price: 4184,
+      total_price: 4184,
+    }],
+    razorpay_order_id: 'order_demo_seed_rzp_02',
+    payment_id: 'pay_demo_seed_rzp_02',
+    agent_session_id: 'sess_seed_002',
+    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+  };
+  orders.set(seedOrder2.id, seedOrder2);
+
+  const seedPayment2: Payment = {
+    id: 'pay_demo_seed_rzp_02',
+    order_id: 'ord_demo_seed_002',
+    razorpay_payment_id: 'pay_seed_upi_5510',
+    razorpay_order_id: 'order_demo_seed_rzp_02',
+    amount: 4184,
+    currency: 'INR',
+    method: 'card',
+    status: 'captured',
+    failure_reason: null,
+    is_recovery_attempt: false,
+    recovery_attempt_number: 0,
+    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+  };
+  payments.set(seedPayment2.id, seedPayment2);
+
+  console.log(`[DB] Initialized: ${merchants.size} merchants, ${products.size} products, ${users.size} users, ${orders.size} seed orders`);
 }
 
 // ============================================================

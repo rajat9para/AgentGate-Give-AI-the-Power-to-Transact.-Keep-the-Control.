@@ -32,11 +32,13 @@ export default function BuyerHistory() {
     return <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 100 }}><div className="spinner" /></div>;
   }
 
-  const totalSpent = orders
+  const safeOrders = Array.isArray(orders) ? orders : [];
+
+  const totalSpent = safeOrders
     .filter(o => o.status === 'paid' || o.status === 'delivered')
     .reduce((sum, o) => sum + (o.negotiated_amount || o.total_amount), 0);
 
-  const totalSaved = orders
+  const totalSaved = safeOrders
     .filter(o => o.negotiated_amount && (o.status === 'paid' || o.status === 'delivered'))
     .reduce((sum, o) => sum + Math.max(0, o.total_amount - o.negotiated_amount), 0);
 
@@ -52,11 +54,11 @@ export default function BuyerHistory() {
         </button>
       </div>
 
-      {orders.length > 0 && (
+      {safeOrders.length > 0 && (
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-card-label">Total AI Purchases</div>
-            <div className="stat-card-value">{orders.length}</div>
+            <div className="stat-card-value">{safeOrders.length}</div>
             <div className="stat-card-subtitle">Transactions successfully fulfilled</div>
           </div>
           <div className="stat-card">
@@ -72,7 +74,7 @@ export default function BuyerHistory() {
         </div>
       )}
 
-      {orders.length === 0 ? (
+      {safeOrders.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
           <Package size={48} style={{ color: 'var(--text-muted)', marginBottom: 16 }} />
           <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>No Purchases Yet</h3>
@@ -82,7 +84,7 @@ export default function BuyerHistory() {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 18 }}>
-          {orders.map((order) => {
+          {safeOrders.map((order) => {
             const finalPrice = order.negotiated_amount || order.total_amount;
             const savings = order.negotiated_amount ? Math.max(0, order.total_amount - order.negotiated_amount) : 0;
             const savingsPercent = savings > 0 ? Math.round((savings / order.total_amount) * 100) : 0;

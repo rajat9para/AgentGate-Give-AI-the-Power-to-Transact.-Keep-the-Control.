@@ -73,6 +73,7 @@ export async function parseIntent(userMessage: string): Promise<StructuredIntent
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
+      signal: AbortSignal.timeout(6000),
       headers: {
         'Authorization': `Bearer ${config.groq.apiKey}`,
         'Content-Type': 'application/json',

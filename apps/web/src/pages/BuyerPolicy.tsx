@@ -43,17 +43,22 @@ export default function BuyerPolicy() {
     setLoaded(false);
     buyerApi.getPolicy('demo-buyer-001')
       .then((data) => {
-        setPolicy(data.policy);
-        setSpending(data.spending);
-        if (data.policy) {
-          setSingleLimitStr(String(data.policy.single_transaction_limit || 6000));
-          setDailyLimitStr(String(data.policy.daily_limit || 10000));
-          setWeeklyLimitStr(String(data.policy.weekly_limit || 25000));
-        }
+        const pol = data?.policy || DEFAULT_POLICY;
+        const sp = data?.spending || { daily_spent: 0, daily_remaining: 10000, weekly_spent: 0, weekly_remaining: 25000 };
+        setPolicy(pol);
+        setSpending(sp);
+        setSingleLimitStr(String(pol.single_transaction_limit || 6000));
+        setDailyLimitStr(String(pol.daily_limit || 10000));
+        setWeeklyLimitStr(String(pol.weekly_limit || 25000));
         setLoaded(true);
       })
       .catch((err) => {
-        console.error('Failed to load policy:', err);
+        console.warn('Backend waking up, using default policy:', err);
+        setPolicy(DEFAULT_POLICY);
+        setSpending({ daily_spent: 0, daily_remaining: 10000, weekly_spent: 0, weekly_remaining: 25000 });
+        setSingleLimitStr(String(DEFAULT_POLICY.single_transaction_limit));
+        setDailyLimitStr(String(DEFAULT_POLICY.daily_limit));
+        setWeeklyLimitStr(String(DEFAULT_POLICY.weekly_limit));
         setLoaded(true);
       });
   };

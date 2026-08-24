@@ -60,6 +60,7 @@ export async function generateMerchantResponse(
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
+      signal: AbortSignal.timeout(5000),
       headers: {
         'Authorization': `Bearer ${config.groq.apiKey}`,
         'Content-Type': 'application/json',
