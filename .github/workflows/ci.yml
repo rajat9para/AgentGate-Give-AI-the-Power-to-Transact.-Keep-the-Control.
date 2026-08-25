@@ -1,0 +1,70 @@
+name: CI & Enterprise Security Gates
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  typecheck-and-lint:
+    name: Typecheck & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Typecheck Backend (tsc)
+        run: npm run build:api
+
+      - name: Build Frontend (Vite)
+        run: npm run build:web
+
+  test-and-coverage:
+    name: Vitest & Cryptographic Invariant Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Vitest Security & Integration Suites with Coverage
+        run: npm run test:coverage --workspace=apps/api
+
+      - name: Run Cryptographic & Policy Suite (Node/tsx)
+        run: |
+          npm run test:security --workspace=apps/api
+          npm run test:policy --workspace=apps/api
+          npm run test:maintenance --workspace=apps/api
+
+  security-audit:
+    name: Dependency Vulnerability Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run NPM Audit
+        run: npm audit --audit-level=high

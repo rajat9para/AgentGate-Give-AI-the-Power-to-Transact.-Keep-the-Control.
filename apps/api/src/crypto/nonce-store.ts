@@ -1,7 +1,10 @@
 // ============================================================
 // AgentGate — Nonce Store & Anti-Replay Engine
 // Guarantees atomic once-and-only-once authorization consumption
+// Supports in-process atomic sets, Redis SETNX, & PostgreSQL persistence
 // ============================================================
+
+import { supabaseDb } from '../db/supabase-client.js';
 
 export interface ConsumedNonceRecord {
   nonce: string;
@@ -9,7 +12,7 @@ export interface ConsumedNonceRecord {
   consumedAt: string;
 }
 
-class NonceStore {
+export class NonceStore {
   private consumedNonces: Map<string, ConsumedNonceRecord> = new Map();
   private consumedAuthorizations: Map<string, string> = new Map(); // authId -> consumedAt
 
@@ -49,6 +52,33 @@ class NonceStore {
       consumedAt: now,
     });
     this.consumedAuthorizations.set(authorizationId, now);
+
+    // Persist to PostgreSQL database asynchronously for multi-instance durability
+    if (supabaseDb.isConnected) {
+      supabaseDb.persistNonceConsumption(nonce, authorizationId).catch((err) => {
+        console.error('[NonceStore] Failed to persist nonce to database:', err);
+      });
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * Asynchronous atomic consumption for multi-instance distributed environments.
+   */
+  public async consumeAsync(nonce: string, authorizationId: string): Promise<{ success: boolean; reason?: string }> {
+    const localResult = this.consume(nonce, authorizationId);
+    if (!localResult.success) return localResult;
+
+    if (supabaseDb.isConnected) {
+      const persisted = await supabaseDb.persistNonceConsumption(nonce, authorizationId);
+      if (!persisted) {
+        return {
+          success: false,
+          reason: `Distributed Replay detected: Nonce "${nonce}" is already marked as consumed in PostgreSQL.`,
+        };
+      }
+    }
 
     return { success: true };
   }

@@ -251,6 +251,7 @@ export const db = {
 
   // Orders
   getOrder: (id: string) => orders.get(id) || null,
+  getAllOrders: () => [...orders.values()],
   getOrdersByUser: (userId: string) => [...orders.values()].filter(o => o.user_id === userId),
   getOrdersByMerchant: (merchantId: string) => [...orders.values()].filter(o => o.merchant_id === merchantId),
   createOrder: (order: Omit<Order, 'id' | 'created_at' | 'updated_at'>) => {
@@ -273,6 +274,7 @@ export const db = {
 
   // Payments
   getPayment: (id: string) => payments.get(id) || null,
+  getAllPayments: () => [...payments.values()],
   getPaymentsByOrder: (orderId: string) => [...payments.values()].filter(p => p.order_id === orderId),
   createPayment: (payment: Omit<Payment, 'id' | 'created_at' | 'updated_at'>) => {
     const newPayment: Payment = {

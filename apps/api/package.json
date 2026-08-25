@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "test": "node --import tsx src/test-conversational-safety.ts && node --import tsx src/test-policy.ts && node --import tsx src/test-flow.ts && node --import tsx src/crypto/security.test.ts && node --import tsx src/test-maintenance.ts && node --import tsx src/test-200-conversations.ts",
+    "test": "vitest run && node --import tsx src/test-conversational-safety.ts && node --import tsx src/test-policy.ts && node --import tsx src/test-flow.ts && node --import tsx src/crypto/security.test.ts && node --import tsx src/test-maintenance.ts && node --import tsx src/test-200-conversations.ts",
+    "test:vitest": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:200": "node --import tsx src/test-200-conversations.ts",
     "test:policy": "node --import tsx src/test-policy.ts",
     "test:security": "node --import tsx src/crypto/security.test.ts",
@@ -22,11 +24,19 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
     "razorpay": "^2.9.0",
     "typescript": "^5.7.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "tsx": "^4.19.0"
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/supertest": "^7.2.1",
+    "@vitest/coverage-v8": "^4.1.11",
+    "supertest": "^7.2.2",
+    "tsx": "^4.19.0",
+    "vitest": "^4.1.11"
   }
 }

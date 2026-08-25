@@ -1,10 +1,12 @@
 // ============================================================
 // AgentGate — Atomic Budget Reservation Engine
 // Prevents race conditions and double-spending across concurrent requests
+// Integrates with in-memory fast lock, Redis, & PostgreSQL persistence
 // ============================================================
 
 import crypto from 'crypto';
 import { db } from '../db/database.js';
+import { supabaseDb } from '../db/supabase-client.js';
 
 export interface BudgetReservation {
   reservationId: string;
@@ -37,6 +39,7 @@ class BudgetReservationEngine {
         } else {
           // Expired reservation - auto mark released
           res.status = 'released';
+          res.releasedAt = now;
         }
       }
     }
@@ -106,6 +109,13 @@ class BudgetReservationEngine {
     this.activeReservations.set(reservationId, record);
     this.authToReservation.set(authorizationId, reservationId);
 
+    // Persist to PostgreSQL if configured
+    if (supabaseDb.isConnected) {
+      supabaseDb.persistReservation(record).catch((err) => {
+        console.error('[BudgetReservation] Failed to persist reservation to database:', err);
+      });
+    }
+
     return { success: true, reservationId };
   }
 
@@ -126,9 +136,17 @@ class BudgetReservationEngine {
       return { success: false, reason: `Reservation "${reservationId}" was already released.` };
     }
 
+    const now = Date.now();
     record.status = 'committed';
+    record.committedAt = now;
     db.addDailySpending(record.userId, record.amount);
     db.addWeeklySpending(record.userId, record.amount);
+
+    if (supabaseDb.isConnected) {
+      supabaseDb.persistReservation(record).catch((err) => {
+        console.error('[BudgetReservation] Failed to persist committed reservation:', err);
+      });
+    }
 
     return { success: true, amount: record.amount };
   }
@@ -146,7 +164,16 @@ class BudgetReservationEngine {
       return { success: false, reason: `Cannot release already committed reservation "${reservationId}".` };
     }
 
+    const now = Date.now();
     record.status = 'released';
+    record.releasedAt = now;
+
+    if (supabaseDb.isConnected) {
+      supabaseDb.persistReservation(record).catch((err) => {
+        console.error('[BudgetReservation] Failed to persist released reservation:', err);
+      });
+    }
+
     return { success: true };
   }
 

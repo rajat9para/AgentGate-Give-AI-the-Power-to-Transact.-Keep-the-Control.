@@ -223,6 +223,7 @@ export class ExecutionGateway {
       );
 
       order.razorpay_order_id = rzpOrder.id;
+      db.updateOrder(order.id, { razorpay_order_id: rzpOrder.id });
 
       // Execute primary payment via simulation
       const simRes = simulatePayment(

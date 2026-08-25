@@ -1,5 +1,6 @@
 // ============================================================
 // RazorX — Frontend API Client (Production-Ready with Resilient Fallbacks)
+// Enforces Bearer JWT Authentication, Idempotency, and Offline Resilience
 // ============================================================
 
 function getApiBaseUrl(): string {
@@ -10,7 +11,10 @@ function getApiBaseUrl(): string {
     return base;
   }
   // In local development or localhost browser, use Vite's configured proxy to local backend
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ) {
     return '/api';
   }
   return 'https://razorx-give-ai-the-power-to-transact.onrender.com/api';
@@ -18,18 +22,42 @@ function getApiBaseUrl(): string {
 
 const API_BASE = getApiBaseUrl();
 
+let currentAuthToken: string | null =
+  typeof window !== 'undefined' ? localStorage.getItem('agentgate_auth_token') : null;
+
+export function setAuthToken(token: string | null): void {
+  currentAuthToken = token;
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem('agentgate_auth_token', token);
+    } else {
+      localStorage.removeItem('agentgate_auth_token');
+    }
+  }
+}
+
+export function getAuthToken(): string | null {
+  return currentAuthToken;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   const url = `${API_BASE}${cleanPath}`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string>),
+  };
+
+  if (currentAuthToken && !headers['Authorization']) {
+    headers['Authorization'] = `Bearer ${currentAuthToken}`;
+  }
 
   try {
     const res = await fetch(url, {
       ...options,
       signal: options?.signal || AbortSignal.timeout(20000),
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers,
     });
 
     if (!res.ok) {
@@ -58,11 +86,19 @@ const FALLBACK_DEMO_POLICY = {
     daily_limit: 10000,
     weekly_limit: 25000,
     autonomous_purchase: true,
-    allowed_categories: ['running_shoes', 'electronics', 'clothing', 'fitness', 'accessories', 'nutrition', 'student_essentials'],
+    allowed_categories: [
+      'running_shoes',
+      'electronics',
+      'clothing',
+      'fitness',
+      'accessories',
+      'nutrition',
+      'student_essentials',
+    ],
     negotiation: true,
     fallback_payments: ['upi', 'card'],
     opportunity_alerts: true,
-    max_opportunity_overshoot: 0.20,
+    max_opportunity_overshoot: 0.2,
     min_opportunity_improvement: 0.08,
   },
   spending: {
@@ -80,7 +116,8 @@ const FALLBACK_DEMO_HISTORY = [
     merchant_id: 'merchant-runpro',
     merchant_name: 'RunPro Sports',
     product_title: 'RunPro Velocity X Daily Trainer',
-    product_image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
+    product_image:
+      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
     status: 'delivered',
     total_amount: 5799,
     negotiated_amount: 5219,
@@ -96,7 +133,8 @@ const FALLBACK_DEMO_HISTORY = [
     merchant_id: 'merchant-technest',
     merchant_name: 'TechNest Electronics',
     product_title: 'TechNest AirBuds Pro ANC Wireless Earbuds',
-    product_image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80',
+    product_image:
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80',
     status: 'delivered',
     total_amount: 4499,
     negotiated_amount: 4184,
@@ -107,6 +145,23 @@ const FALLBACK_DEMO_HISTORY = [
     created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
   },
 ];
+
+// ---- Auth API ----
+export const authApi = {
+  getToken: (userId: string = 'demo-buyer-001') =>
+    request<{ token: string; type: string; user: any }>('/auth/token', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId }),
+    }),
+
+  getAgentToken: (agentId?: string, scopes?: string[]) =>
+    request<{ token: string; session_id: string; expires_at: string; scopes: string[] }>('/auth/agent-token', {
+      method: 'POST',
+      body: JSON.stringify({ agent_id: agentId, scopes }),
+    }),
+
+  getMe: () => request<{ authenticated: boolean; user: any }>('/auth/me'),
+};
 
 // ---- Buyer API ----
 export const buyerApi = {
@@ -146,11 +201,9 @@ export const merchantApi = {
 
   getById: (id: string) => request<any>(`/merchants/${id}`),
 
-  getCatalog: (merchantId: string) =>
-    request<any[]>(`/merchants/${merchantId}/catalog`),
+  getCatalog: (merchantId: string) => request<any[]>(`/merchants/${merchantId}/catalog`),
 
-  getPolicy: (merchantId: string) =>
-    request<any>(`/merchant/policy?merchant_id=${merchantId}`),
+  getPolicy: (merchantId: string) => request<any>(`/merchant/policy?merchant_id=${merchantId}`),
 
   updatePolicy: (merchantId: string, updates: Record<string, any>) =>
     request<any>('/merchant/policy', {
@@ -158,8 +211,7 @@ export const merchantApi = {
       body: JSON.stringify({ merchant_id: merchantId, ...updates }),
     }),
 
-  getMetrics: (merchantId: string) =>
-    request<any>(`/merchant/metrics?merchant_id=${merchantId}`),
+  getMetrics: (merchantId: string) => request<any>(`/merchant/metrics?merchant_id=${merchantId}`),
 };
 
 // ---- Products ----
@@ -190,6 +242,7 @@ export const auditApi = {
 // ---- Crypto Key Management ----
 export const cryptoApi = {
   getActiveKey: () => request<any>('/crypto/active-key'),
+  getRotationHistory: () => request<any[]>('/crypto/rotation-history'),
   verifyAuthorization: (authorization: any, expectedRequest?: any) =>
     request<any>('/transactions/verify-authorization', {
       method: 'POST',
@@ -209,7 +262,8 @@ export const storageApi = {
       method: 'POST',
       body: JSON.stringify({ folder }),
     }),
-  getConfig: () => request<{ cloudName: string; uploadPreset: string; isConfigured: boolean }>('/storage/config'),
+  getConfig: () =>
+    request<{ cloudName: string; uploadPreset: string; isConfigured: boolean }>('/storage/config'),
   getById: (id: string) => request<any>(`/storage/${id}`),
 
   uploadDirect: async (file: File | Blob, folder: string = 'agentgate/uploads') => {
@@ -242,6 +296,10 @@ export const maintenanceApi = {
     request<any>('/maintenance/cleanup', {
       method: 'POST',
       body: JSON.stringify({ retention_days: days || 15 }),
+    }),
+  reconcile: () =>
+    request<any>('/maintenance/reconcile', {
+      method: 'POST',
     }),
   status: () => request<any>('/maintenance/status'),
 };

@@ -4,6 +4,7 @@
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { config, validateStartupConfig } from './config.js';
 import { router } from './routes/index.js';
 import { initializeDatabase } from './db/database.js';
@@ -12,6 +13,7 @@ import { requestTimeoutMiddleware, notFoundHandler, centralizedErrorHandler } fr
 import { keyManager } from './crypto/key-manager.js';
 import { supabaseDb } from './db/supabase-client.js';
 import { maintenanceService } from './services/maintenance-service.js';
+import { reconciliationService } from './services/reconciliation-service.js';
 
 const app = express();
 
@@ -29,7 +31,38 @@ if (startupCheck.warnings.length > 0) {
   startupCheck.warnings.forEach((warn) => console.warn(`   - ${warn}`));
 }
 
-// 2. CORS Configuration
+// 1. Security Headers Middleware (Helmet)
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+        connectSrc: ["'self'", 'https:', 'http://localhost:*', 'http://127.0.0.1:*'],
+        frameAncestors: ["'none'"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: config.nodeEnv === 'production' ? [] : null,
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    frameguard: { action: 'deny' },
+    hidePoweredBy: true,
+    noSniff: true,
+    xssFilter: true,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  })
+);
+
+// 2. CORS Configuration (Strict Whitelist Enforcement)
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
@@ -53,12 +86,21 @@ app.use(
       if (isAllowed) {
         callback(null, true);
       } else {
-        callback(null, true); // Permissive in demo mode, but origin is reflected
+        const err = new Error(`CORS Error: Origin '${origin}' is not authorized.`);
+        callback(err, false);
       }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-Idempotency-Key'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Request-ID',
+      'X-Idempotency-Key',
+      'Idempotency-Key',
+      'X-Agent-Session-Token',
+      'X-AgentGate-User-Id',
+    ],
   })
 );
 
@@ -141,11 +183,13 @@ app.use(centralizedErrorHandler);
 initializeDatabase();
 
 // 9. Start HTTP Server & Background Workers
-const server = app.listen(config.port, () => {
-  // Start anti-sleep keep-alive and data retention jobs
-  maintenanceService.start();
+if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
+  const server = app.listen(config.port, () => {
+    // Start anti-sleep keep-alive, data retention, and payment reconciliation jobs
+    maintenanceService.start();
+    reconciliationService.start();
 
-  console.log(`
+    console.log(`
 ╔══════════════════════════════════════════════════════════════════╗
 ║                                                                  ║
 ║   🚀 RazorX Autonomous AI Commerce Service (Razorpay + AI)       ║
@@ -162,26 +206,28 @@ const server = app.listen(config.port, () => {
 ║   Service URL:  http://localhost:${config.port}                                ║
 ║                                                                  ║
 ╚══════════════════════════════════════════════════════════════════╝
-  `);
-});
-
-// 10. Graceful Shutdown Handling (SIGINT & SIGTERM for Render deployment)
-function handleGracefulShutdown(signal: string) {
-  console.log(`\n[RazorX] Received ${signal}. Initiating graceful shutdown...`);
-  maintenanceService.stop();
-  server.close(() => {
-    console.log('[RazorX] HTTP server closed cleanly. Exiting process.');
-    process.exit(0);
+    `);
   });
 
-  // Force exit after 10 seconds if connections hang
-  setTimeout(() => {
-    console.error('[AgentGate] Forced exit after shutdown timeout.');
-    process.exit(1);
-  }, 10000);
-}
+  // 10. Graceful Shutdown Handling (SIGINT & SIGTERM for Render deployment)
+  function handleGracefulShutdown(signal: string) {
+    console.log(`\n[RazorX] Received ${signal}. Initiating graceful shutdown...`);
+    maintenanceService.stop();
+    reconciliationService.stop();
+    server.close(() => {
+      console.log('[RazorX] HTTP server closed cleanly. Exiting process.');
+      process.exit(0);
+    });
 
-process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
-process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
+    // Force exit after 10 seconds if connections hang
+    setTimeout(() => {
+      console.error('[AgentGate] Forced exit after shutdown timeout.');
+      process.exit(1);
+    }, 10000);
+  }
+
+  process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
+  process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
+}
 
 export default app;

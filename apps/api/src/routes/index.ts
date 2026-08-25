@@ -1,5 +1,7 @@
 // ============================================================
-// AgentGate — API Routes
+// AgentGate — API Routes (Production-Hardened)
+// Enforces Authentication, Scoped Tokens, Zod Edge Validation,
+// HTTP Idempotency, Anomaly Rate Limiting, & Persistent Ledgers
 // ============================================================
 
 import { Router, type Request, type Response } from 'express';
@@ -12,48 +14,83 @@ import { handleWebhook } from '../payments/webhook-handler.js';
 import { getAuditTrail, getOrderAuditTrail, getAllAuditLogs, verifyAuditChain, createAuditLog } from '../audit/audit-service.js';
 import { keyManager } from '../crypto/key-manager.js';
 import { verifyTransactionAuthorization } from '../crypto/authorization.js';
-import { aiIntentRateLimiter, webhookRateLimiter } from '../middleware/rate-limit.js';
+import {
+  aiIntentRateLimiter,
+  webhookRateLimiter,
+  policyMutationRateLimiter,
+  purchaseExecutionRateLimiter,
+  recordSecurityViolation,
+} from '../middleware/rate-limit.js';
+import { idempotencyMiddleware } from '../middleware/idempotency.js';
+import { authRouter } from '../auth/auth-routes.js';
+import { authenticateToken, requireAuth, requireUserSession, requireScope } from '../auth/auth-middleware.js';
+import { validateBody, validateQuery, validateParams } from '../validation/validate-middleware.js';
+import {
+  buyerIntentSchema,
+  updateUserPolicySchema,
+  updateMerchantPolicySchema,
+  verifyAuthorizationRequestSchema,
+  storageUploadSchema,
+  productSearchQuerySchema,
+} from '../validation/schemas.js';
 import { cloudinaryStorageService } from '../storage/cloudinary-service.js';
 import { supabaseDb } from '../db/supabase-client.js';
 import { maintenanceService } from '../services/maintenance-service.js';
+import { reconciliationService } from '../services/reconciliation-service.js';
 import { config } from '../config.js';
 
 export const router = Router();
 
 // ============================================================
-// Buyer Routes
+// Authentication & Token Issuance Routes
+// ============================================================
+router.use('/auth', authRouter);
+
+// ============================================================
+// Buyer Routes (Strict Identity Derivation & Scoped Authorization)
 // ============================================================
 
 /**
  * POST /api/buyer/intent
  * Main entry point — user gives a natural language purchase request
+ * Derives user_id strictly from verified token / session.
  */
-router.post('/buyer/intent', aiIntentRateLimiter, async (req: Request, res: Response) => {
-  try {
-    const { user_id, message } = req.body;
+router.post(
+  '/buyer/intent',
+  aiIntentRateLimiter,
+  idempotencyMiddleware,
+  authenticateToken,
+  requireAuth,
+  validateBody(buyerIntentSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { message } = req.body;
+      const userId = req.user!.userId; // Derived strictly from verified token
 
-    if (!user_id || !message) {
-      res.status(400).json({ error: 'user_id and message are required' });
-      return;
+      if (!message || typeof message !== 'string') {
+        res.status(400).json({ error: 'message is required' });
+        return;
+      }
+
+      const result = await executeBuyerFlow(userId, message);
+      res.json(result);
+    } catch (error) {
+      console.error('[API] /buyer/intent error:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    const result = await executeBuyerFlow(user_id, message);
-    res.json(result);
-  } catch (error) {
-    console.error('[API] /buyer/intent error:', error);
-    res.status(500).json({ error: 'Internal server error' });
   }
-});
+);
 
 /**
- * GET /api/buyer/policy?user_id=xxx
+ * GET /api/buyer/policy
+ * Returns active spending limits for authenticated user.
  */
-router.get('/buyer/policy', (req: Request, res: Response) => {
-  const userId = req.query.user_id as string;
-  if (!userId) {
-    res.status(400).json({ error: 'user_id query parameter required' });
-    return;
-  }
+router.get('/buyer/policy', authenticateToken, requireAuth, (req: Request, res: Response) => {
+  // If caller is admin, allow reading other user policies; otherwise force authenticated userId
+  const userId =
+    req.user!.role === 'admin' && req.query.user_id
+      ? String(req.query.user_id)
+      : req.user!.userId;
 
   const policy = db.getUserPolicy(userId);
   if (!policy) {
@@ -68,63 +105,70 @@ router.get('/buyer/policy', (req: Request, res: Response) => {
     policy,
     spending: {
       daily_spent: dailySpent,
-      daily_remaining: policy.daily_limit - dailySpent,
+      daily_remaining: Math.max(0, policy.daily_limit - dailySpent),
       weekly_spent: weeklySpent,
-      weekly_remaining: policy.weekly_limit - weeklySpent,
+      weekly_remaining: Math.max(0, policy.weekly_limit - weeklySpent),
     },
   });
 });
 
 /**
  * PUT /api/buyer/policy
+ * Updates spending limits for authenticated user.
+ * Requires direct human user session (agents cannot mutate spending limits).
  */
-router.put('/buyer/policy', (req: Request, res: Response) => {
-  const { user_id, ...updates } = req.body;
-  if (!user_id) {
-    res.status(400).json({ error: 'user_id is required' });
-    return;
-  }
+router.put(
+  '/buyer/policy',
+  policyMutationRateLimiter,
+  idempotencyMiddleware,
+  authenticateToken,
+  requireUserSession,
+  validateBody(updateUserPolicySchema),
+  (req: Request, res: Response) => {
+    const userId = req.user!.userId;
+    const updates = req.body;
 
-  const updated = db.updateUserPolicy(user_id, updates);
-  if (!updated) {
-    res.status(404).json({ error: 'Policy not found' });
-    return;
-  }
+    const updated = db.updateUserPolicy(userId, updates);
+    if (!updated) {
+      res.status(404).json({ error: 'Policy not found' });
+      return;
+    }
 
-  res.json(updated);
-});
+    res.json(updated);
+  }
+);
 
 /**
- * GET /api/buyer/history?user_id=xxx
+ * GET /api/buyer/history
+ * Returns enriched order history for authenticated user.
  */
-router.get('/buyer/history', (req: Request, res: Response) => {
-  const userId = req.query.user_id as string;
-  if (!userId) {
-    res.status(400).json({ error: 'user_id query parameter required' });
-    return;
-  }
+router.get('/buyer/history', authenticateToken, requireAuth, (req: Request, res: Response) => {
+  const userId =
+    req.user!.role === 'admin' && req.query.user_id
+      ? String(req.query.user_id)
+      : req.user!.userId;
 
-function getCategoryFallbackImage(category?: string): string {
-  switch (category?.toLowerCase()) {
-    case 'running_shoes':
-    case 'shoes':
-      return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
-    case 'electronics':
-      return 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80';
-    case 'student_essentials':
-      return 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&auto=format&fit=crop&q=80';
-    case 'fitness':
-      return 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=600&auto=format&fit=crop&q=80';
-    case 'nutrition':
-      return 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80';
-    case 'clothing':
-      return 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80';
-    case 'accessories':
-      return 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80';
-    default:
-      return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+  function getCategoryFallbackImage(category?: string): string {
+    switch (category?.toLowerCase()) {
+      case 'running_shoes':
+      case 'shoes':
+        return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+      case 'electronics':
+        return 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80';
+      case 'student_essentials':
+        return 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&auto=format&fit=crop&q=80';
+      case 'fitness':
+        return 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=600&auto=format&fit=crop&q=80';
+      case 'nutrition':
+        return 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&auto=format&fit=crop&q=80';
+      case 'clothing':
+        return 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80';
+      case 'accessories':
+        return 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80';
+      default:
+        return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+    }
   }
-}
 
   const rawOrders = db.getOrdersByUser(userId);
   const enrichedOrders = rawOrders.map((order) => {
@@ -150,7 +194,7 @@ function getCategoryFallbackImage(category?: string): string {
 
     return {
       ...order,
-      status: (order.status === 'paid' || order.status === 'confirmed') ? 'delivered' : order.status,
+      status: order.status === 'paid' || order.status === 'confirmed' ? 'delivered' : order.status,
       merchant_name: merchant?.name || 'Verified Merchant',
       merchant_logo: merchant?.logo_url,
       merchant_rating: merchant?.rating || 4.8,
@@ -200,7 +244,7 @@ router.get('/merchants/:id/catalog', (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/merchants/:id/metrics or GET /api/merchant/metrics?merchant_id=xxx
+ * GET /api/merchants/:id/metrics or GET /api/merchant/metrics
  */
 router.get('/merchants/:id/metrics', (req: Request, res: Response) => {
   const merchantId = String(req.params.id);
@@ -220,7 +264,7 @@ router.get('/merchant/metrics', (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/merchants/:id/policy or GET /api/merchant/policy?merchant_id=xxx
+ * GET /api/merchants/:id/policy or GET /api/merchant/policy
  */
 router.get('/merchants/:id/policy', (req: Request, res: Response) => {
   const merchantId = String(req.params.id);
@@ -251,34 +295,46 @@ router.get('/merchant/policy', (req: Request, res: Response) => {
 /**
  * PUT /api/merchants/:id/policy or PUT /api/merchant/policy
  */
-router.put('/merchants/:id/policy', (req: Request, res: Response) => {
-  const merchantId = String(req.params.id);
-  const updated = db.updateMerchantPolicy(merchantId, req.body);
-  if (!updated) {
-    res.status(404).json({ error: 'Policy not found' });
-    return;
+router.put(
+  '/merchants/:id/policy',
+  policyMutationRateLimiter,
+  idempotencyMiddleware,
+  validateBody(updateMerchantPolicySchema),
+  (req: Request, res: Response) => {
+    const merchantId = String(req.params.id);
+    const updated = db.updateMerchantPolicy(merchantId, req.body);
+    if (!updated) {
+      res.status(404).json({ error: 'Policy not found' });
+      return;
+    }
+    res.json(updated);
   }
-  res.json(updated);
-});
+);
 
-router.put('/merchant/policy', (req: Request, res: Response) => {
-  const { merchant_id, ...updates } = req.body;
-  if (!merchant_id) {
-    res.status(400).json({ error: 'merchant_id is required' });
-    return;
+router.put(
+  '/merchant/policy',
+  policyMutationRateLimiter,
+  idempotencyMiddleware,
+  validateBody(updateMerchantPolicySchema),
+  (req: Request, res: Response) => {
+    const { merchant_id, ...updates } = req.body;
+    if (!merchant_id) {
+      res.status(400).json({ error: 'merchant_id is required' });
+      return;
+    }
+
+    const updated = db.updateMerchantPolicy(String(merchant_id), updates);
+    if (!updated) {
+      res.status(404).json({ error: 'Policy not found' });
+      return;
+    }
+
+    res.json(updated);
   }
-
-  const updated = db.updateMerchantPolicy(String(merchant_id), updates);
-  if (!updated) {
-    res.status(404).json({ error: 'Policy not found' });
-    return;
-  }
-
-  res.json(updated);
-});
+);
 
 /**
- * GET /api/merchant/upsell?merchant_id=xxx&product_id=yyy
+ * GET /api/merchant/upsell
  */
 router.get('/merchant/upsell', (req: Request, res: Response) => {
   const merchantId = req.query.merchant_id ? String(req.query.merchant_id) : '';
@@ -299,7 +355,7 @@ router.get('/merchant/upsell', (req: Request, res: Response) => {
 /**
  * GET /api/products
  */
-router.get('/products', (req: Request, res: Response) => {
+router.get('/products', validateQuery(productSearchQuerySchema), (req: Request, res: Response) => {
   const category = req.query.category ? String(req.query.category) : undefined;
   const maxPrice = req.query.max_price ? parseInt(String(req.query.max_price), 10) : undefined;
   const search = req.query.search ? String(req.query.search) : undefined;
@@ -361,19 +417,23 @@ router.post('/webhooks/razorpay', webhookRateLimiter, handleWebhook);
  * POST /api/transactions/verify-authorization
  * Validates a TransactionAuthorization object against expected parameters
  */
-router.post('/transactions/verify-authorization', (req: Request, res: Response) => {
-  const { authorization, expected_request } = req.body;
-  if (!authorization) {
-    res.status(400).json({ error: 'authorization object is required' });
-    return;
+router.post(
+  '/transactions/verify-authorization',
+  validateBody(verifyAuthorizationRequestSchema),
+  (req: Request, res: Response) => {
+    const { authorization, expected_request } = req.body;
+
+    const result = verifyTransactionAuthorization(authorization, {
+      expectedRequest: expected_request,
+    });
+
+    if (!result.valid) {
+      recordSecurityViolation(req);
+    }
+
+    res.json(result);
   }
-
-  const result = verifyTransactionAuthorization(authorization, {
-    expectedRequest: expected_request,
-  });
-
-  res.json(result);
-});
+);
 
 // ============================================================
 // Cloudinary Media / Object Storage Routes
@@ -382,28 +442,29 @@ router.post('/transactions/verify-authorization', (req: Request, res: Response) 
 /**
  * POST /api/storage/upload
  */
-router.post('/storage/upload', async (req: Request, res: Response) => {
-  try {
-    const { fileData, folder, resourceType, referenceType, referenceId, ownerId } = req.body;
-    if (!fileData) {
-      res.status(400).json({ error: 'fileData is required' });
-      return;
+router.post(
+  '/storage/upload',
+  idempotencyMiddleware,
+  validateBody(storageUploadSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { fileData, folder, resourceType, referenceType, referenceId, ownerId } = req.body;
+
+      const stored = await cloudinaryStorageService.uploadMedia({
+        fileData,
+        folder,
+        resourceType,
+        referenceType,
+        referenceId,
+        ownerId,
+      });
+
+      res.json(stored);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || 'Storage upload failed' });
     }
-
-    const stored = await cloudinaryStorageService.uploadMedia({
-      fileData,
-      folder,
-      resourceType,
-      referenceType,
-      referenceId,
-      ownerId,
-    });
-
-    res.json(stored);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Storage upload failed' });
   }
-});
+);
 
 /**
  * POST /api/storage/signed-params
@@ -416,7 +477,6 @@ router.post('/storage/signed-params', (req: Request, res: Response) => {
 
 /**
  * GET /api/storage/config
- * Public upload metadata for browser direct uploads
  */
 router.get('/storage/config', (_req: Request, res: Response) => {
   res.json(cloudinaryStorageService.getPublicUploadConfig());
@@ -435,12 +495,11 @@ router.get('/storage/:id', (req: Request, res: Response) => {
 });
 
 // ============================================================
-// System Maintenance & Anti-Sleep Keep-Alive Routes
+// System Maintenance, Anti-Sleep, & Payment Reconciliation Routes
 // ============================================================
 
 /**
- * GET /api/maintenance/ping or POST /api/maintenance/ping
- * Pings Supabase PostgreSQL to prevent database auto-pause.
+ * ALL /api/maintenance/ping
  */
 router.all('/maintenance/ping', async (_req: Request, res: Response) => {
   const result = await maintenanceService.pingSupabase();
@@ -454,7 +513,6 @@ router.all('/maintenance/ping', async (_req: Request, res: Response) => {
 
 /**
  * POST /api/maintenance/cleanup
- * Free-Tier Optimization: Cleans up records older than 15 days
  */
 router.post('/maintenance/cleanup', async (req: Request, res: Response) => {
   const days = req.body?.retention_days ? parseInt(String(req.body.retention_days), 10) : config.maintenance.retentionDays;
@@ -463,8 +521,16 @@ router.post('/maintenance/cleanup', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/maintenance/reconcile
+ * Trigger payment reconciliation between Razorpay ledger and local orders
+ */
+router.post('/maintenance/reconcile', async (_req: Request, res: Response) => {
+  const report = await reconciliationService.reconcile();
+  res.json(report);
+});
+
+/**
  * GET /api/maintenance/status
- * Returns health & scheduled background worker status
  */
 router.get('/maintenance/status', (_req: Request, res: Response) => {
   res.json(maintenanceService.getStatus());
@@ -492,7 +558,6 @@ router.get('/audit', (_req: Request, res: Response) => {
 
 /**
  * GET /api/audit-chain/verify
- * Cryptographically verifies the tamper-evident hash chain across all audit records
  */
 router.get('/audit-chain/verify', (_req: Request, res: Response) => {
   const verification = verifyAuditChain();
@@ -501,7 +566,6 @@ router.get('/audit-chain/verify', (_req: Request, res: Response) => {
 
 /**
  * GET /api/crypto/active-key
- * Returns active Ed25519 public key and key_id for independent verification
  */
 router.get('/crypto/active-key', (_req: Request, res: Response) => {
   const activeKeyId = keyManager.getActiveKeyId();
@@ -511,6 +575,13 @@ router.get('/crypto/active-key', (_req: Request, res: Response) => {
     algorithm: 'Ed25519',
     public_key: publicKeyPem,
   });
+});
+
+/**
+ * GET /api/crypto/rotation-history
+ */
+router.get('/crypto/rotation-history', (_req: Request, res: Response) => {
+  res.json(keyManager.getKeyRotationHistory());
 });
 
 /**
@@ -547,11 +618,11 @@ router.get('/users', (_req: Request, res: Response) => {
 });
 
 // ============================================================
-// Health & Readiness Endpoints (Render / Deployment Probes)
+// Health & Readiness Endpoints
 // ============================================================
 
 /**
- * GET /api/health (Basic liveness probe)
+ * GET /api/health
  */
 router.get('/health', (_req: Request, res: Response) => {
   res.json({
@@ -564,13 +635,12 @@ router.get('/health', (_req: Request, res: Response) => {
 });
 
 /**
- * GET /api/ready (Readiness probe verifying subsystem status)
+ * GET /api/ready
  */
 router.get('/ready', async (_req: Request, res: Response) => {
   const supabaseHealth = await supabaseDb.checkHealth();
   const activeKeyId = keyManager.getActiveKeyId();
-
-  const isReady = activeKeyId !== '';
+  const isReady = Boolean(activeKeyId);
 
   res.status(isReady ? 200 : 503).json({
     status: isReady ? 'ready' : 'not_ready',
